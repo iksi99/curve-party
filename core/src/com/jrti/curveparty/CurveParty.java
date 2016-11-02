@@ -18,21 +18,11 @@ public class CurveParty extends ApplicationAdapter {
 	private ShapeRenderer ren;
 	private OrthographicCamera camera;
 
-	private java.util.List<Rectangle> renderObjectList = new ArrayList<Rectangle>();
-
+	private GameState gameState = new GameState(960, 540, 1);
 	
 	@Override
 	public void create () {
 		ren = new ShapeRenderer();
-
-		for (int i = 0; i < 960; i++)
-		{
-			for (int j = 0; j < 540; j++)
-			{
-				Rectangle r = new Rectangle(i, j, 1, 1);
-				renderObjectList.add(r);
-			}
-		}
 
 		camera = new OrthographicCamera(960, 540);
 		camera.position.set(camera.viewportWidth / 2, camera.viewportHeight / 2, 0);
@@ -47,13 +37,23 @@ public class CurveParty extends ApplicationAdapter {
 
 		camera.update();
 		ren.setProjectionMatrix(camera.combined);
-		ren.begin(ShapeRenderer.ShapeType.Filled);
 
-		for (Rectangle r : renderObjectList) {
-				ren.setColor(Color.RED);
-				ren.rect(r.getX(), r.getY(), r.getWidth(), r.getHeight());
+		for (Player p : gameState.getPlayerList())
+		{
+
+			ren.begin(ShapeRenderer.ShapeType.Filled);
+
+			ren.setColor(p.getColor());
+			for (Rectangle r : p.getRenderList()) {
+				ren.rect(r.x, r.y, 1, 1);
+			}
+
+			ren.end();
+			System.out.println(p.getX() + " " + p.getY());
+			if(!p.isDead())
+				p.move();
 		}
-		ren.end();
+
 	}
 	
 	@Override
