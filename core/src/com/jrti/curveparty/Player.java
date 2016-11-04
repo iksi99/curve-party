@@ -1,14 +1,12 @@
 package com.jrti.curveparty;
 
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.g3d.particles.influencers.ColorInfluencer;
 import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Polygon;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
 
-import java.awt.geom.Line2D;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,9 +15,8 @@ import java.util.List;
  */
 
 public class Player {
+    public static final String TAG = "CurveParty";
 
-    private int x;
-    private int y;
     private Color color;
     private Rectangle head;
 
@@ -27,14 +24,12 @@ public class Player {
 
     private GameState gameState;
 
-    private float speed = 3f;
-    private float direction = 1f;
+    private double speed = 3f;
+    private double direction = 1f;
 
     private List<Rectangle> renderList = new ArrayList<Rectangle>();
 
     public Player(int x, int y, Color color, GameState gameState) {
-        this.x = x;
-        this.y = y;
         this.color = color;
 
         this.gameState = gameState;
@@ -45,27 +40,15 @@ public class Player {
     }
 
     public int getX() {
-        return x;
-    }
-
-    public void setX(int x) {
-        this.x = x;
+        return (int) head.getX();
     }
 
     public int getY() {
-        return y;
-    }
-
-    public void setY(int y) {
-        this.y = y;
+        return (int) head.getY();
     }
 
     public Color getColor() {
         return color;
-    }
-
-    public void setColor(Color color) {
-        this.color = color;
     }
 
     public boolean isDead() {
@@ -79,12 +62,11 @@ public class Player {
         renderList.add(rectangle);
     }
 
-    public void move()
-    {
-        Rectangle newHead = null; // ako imas null pointer exception brisi ovo
-
+    public void move() {
+        int     x               = (int) head.getX(), y = (int) head.getY();
         Vector2 currentPosition = new Vector2(x, y);
-        Vector2 newPosition = new Vector2((float)(x + speed * Math.cos(direction)), (float)(y + speed * Math.sin(direction)));
+        Vector2 newPosition     = new Vector2((float)(x + speed * Math.cos(direction)),
+                                              (float)(y + speed * Math.sin(direction)));
 
         //if (newPosition.x < gameState.getX() && newPosition.y < gameState.getY()
                 //&& newPosition.x > 0 && newPosition.y > 0) {
@@ -119,24 +101,17 @@ public class Player {
                             gameState.setOccupied(i, j);
                             addRectangle(r);
                             if (Intersector.isPointInPolygon(vert2, newPosition)) {
-                                newHead = r;
+                                head.setPosition(newPosition);
                             }
                         }
                     }
                 }
             }
-
-            x = (int) newPosition.x;
-            y = (int) newPosition.y;
         } catch (ArrayIndexOutOfBoundsException e) {
             isDead = true;
         }
         //} else {
             //isDead = true;
         //}
-
-
-
-        head = newHead;
     }
 }
