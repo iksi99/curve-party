@@ -1,5 +1,6 @@
 package com.jrti.curveparty;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Rectangle;
 
@@ -12,20 +13,22 @@ import java.util.Random;
  */
 
 public class GameState {
+    private static final String TAG = "CurveParty.State";
 
-    private int x;
-    private int y;
+    public static final Color[] PLAYER_COLORS = {Color.CYAN, Color.RED, Color.YELLOW, Color.GREEN};
+
     private int numOfPlayers;
 
 
     private Rectangle[][] gameMatrix;
-    private int[][] occupiedFields;
+    private boolean[][] occupiedFields;
     private List<Player> playerList = new ArrayList<Player>();
 
     public GameState(int x, int y, int numOfPlayers)
     {
         gameMatrix = new Rectangle[x][y];
-        occupiedFields = new int[x][y];
+        occupiedFields = new boolean[x][y];
+        this.numOfPlayers = numOfPlayers;
 
         for (int i = 0; i < x; i++)
         {
@@ -33,11 +36,10 @@ public class GameState {
             {
                 //System.out.println("0");
                 gameMatrix[i][j] = new Rectangle(i, j, 1, 1);
-                occupiedFields[i][j] = 0;
             }
         }
 
-        makePlayers();
+        makePlayers(1);
     }
 
     public List<Player> getPlayerList() {
@@ -48,30 +50,23 @@ public class GameState {
         return gameMatrix;
     }
 
-    public int[][] getOccupiedFields() {
+    public boolean[][] getOccupiedFields() {
         return occupiedFields;
-    }
-
-    public int getX() {
-        return x;
-    }
-
-    public int getY() {
-        return y;
     }
 
     public boolean isOccupied(int x, int y)
     {
-        if (occupiedFields[x][y] != 0) return true;
-        else return false;
+        Gdx.app.debug(TAG, "isOccupied " + x + " " + y + ": " + occupiedFields[x][y]);
+        return occupiedFields[x][y];
     }
 
     public void setOccupied(int x, int y)
     {
-        occupiedFields[x][y] = 1;
+        if(Gdx.app != null) Gdx.app.debug(TAG, "setOccupied " + x + " " + y);
+        occupiedFields[x][y] = true;
     }
 
-    public void makePlayers() {
-            playerList.add(new Player(100, 100, Color.CYAN, this));
+    public void makePlayers(int id) {
+            playerList.add(new Player(100, 100, PLAYER_COLORS[id], this));
     }
 }
