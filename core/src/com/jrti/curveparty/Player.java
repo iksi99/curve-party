@@ -28,7 +28,7 @@ public class Player {
     private GameState gameState;
 
     private float speed = 3f;
-    private float direction = 0;
+    private float direction = 1f;
 
     private List<Rectangle> renderList = new ArrayList<Rectangle>();
 
@@ -93,7 +93,7 @@ public class Player {
                  i <= Math.max(currentPosition.x, newPosition.x);
                  i++) {
                 for (int j = (int) Math.min(currentPosition.y, newPosition.y);
-                     i <= Math.max(currentPosition.y, newPosition.y);
+                     j <= Math.max(currentPosition.y, newPosition.y);
                      j++) {
                     Rectangle r = gameState.getGameMatrix()[i][j];
 
