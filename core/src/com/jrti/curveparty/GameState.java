@@ -2,6 +2,9 @@ package com.jrti.curveparty;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.InputListener;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,6 +21,7 @@ public class GameState {
     private int numOfPlayers;
 
 
+
     private Rectangle[][] gameMatrix;
     private int[][] occupiedFields;
     private List<Player> playerList = new ArrayList<Player>();
@@ -32,7 +36,7 @@ public class GameState {
             for (int j = 0; j < y; j++)
             {
                 //System.out.println("0");
-                gameMatrix[i][j] = new Rectangle(i, j, 1, 1);
+                gameMatrix[i][j] = new Rectangle(i, j, 0.5f, 0.5f);
                 occupiedFields[i][j] = 0;
             }
         }
@@ -72,6 +76,6 @@ public class GameState {
     }
 
     public void makePlayers() {
-            playerList.add(new Player(100, 100, Color.CYAN, this));
+        playerList.add(new LocalPlayer(100, 100, Color.CYAN, this));
     }
 }
