@@ -1,8 +1,10 @@
 package com.jrti.curveparty;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.InputListener;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,33 +15,33 @@ import java.util.Random;
  */
 
 public class GameState {
-    private static final String TAG = "CurveParty.State";
 
-    public static final Color[] PLAYER_COLORS = {Color.CYAN, Color.RED, Color.YELLOW, Color.GREEN};
-
+    private int x;
+    private int y;
     private int numOfPlayers;
 
 
+
     private Rectangle[][] gameMatrix;
-    private boolean[][] occupiedFields;
+    private int[][] occupiedFields;
     private List<Player> playerList = new ArrayList<Player>();
 
     public GameState(int x, int y, int numOfPlayers)
     {
         gameMatrix = new Rectangle[x][y];
-        occupiedFields = new boolean[x][y];
-        this.numOfPlayers = numOfPlayers;
+        occupiedFields = new int[x][y];
 
         for (int i = 0; i < x; i++)
         {
             for (int j = 0; j < y; j++)
             {
                 //System.out.println("0");
-                gameMatrix[i][j] = new Rectangle(i, j, 1, 1);
+                gameMatrix[i][j] = new Rectangle(i, j, 0.5f, 0.5f);
+                occupiedFields[i][j] = 0;
             }
         }
 
-        makePlayers(1);
+        makePlayers();
     }
 
     public List<Player> getPlayerList() {
@@ -50,23 +52,30 @@ public class GameState {
         return gameMatrix;
     }
 
-    public boolean[][] getOccupiedFields() {
+    public int[][] getOccupiedFields() {
         return occupiedFields;
+    }
+
+    public int getX() {
+        return x;
+    }
+
+    public int getY() {
+        return y;
     }
 
     public boolean isOccupied(int x, int y)
     {
-        Gdx.app.debug(TAG, "isOccupied " + x + " " + y + ": " + occupiedFields[x][y]);
-        return occupiedFields[x][y];
+        if (occupiedFields[x][y] != 0) return true;
+        else return false;
     }
 
     public void setOccupied(int x, int y)
     {
-        if(Gdx.app != null) Gdx.app.debug(TAG, "setOccupied " + x + " " + y);
-        occupiedFields[x][y] = true;
+        occupiedFields[x][y] = 1;
     }
 
-    public void makePlayers(int id) {
-            playerList.add(new Player(100, 100, PLAYER_COLORS[id], this));
+    public void makePlayers() {
+        playerList.add(new LocalPlayer(100, 100, Color.CYAN, this));
     }
 }
