@@ -16,27 +16,30 @@ import java.util.List;
 
 public class NetworkPlayer implements Player {
 
+    private int       id;
     private float     x;
     private float     y;
     private Color     color;
     private Rectangle head;
 
-    private boolean isDead         = false;
+    private int     state          = STATE_VISIBLE;
     private boolean isTurningLeft  = false;
     private boolean isTurningRight = false;
 
     private GameState gameState;
 
     private float speed     = 2f;
-    private float direction = 1f;
+    private double direction;
     private float turnAngle = 0.05f;
 
     private List<Rectangle> renderList = new ArrayList<Rectangle>();
 
-    public NetworkPlayer(float x, float y, Color color, GameState gameState) {
+    public NetworkPlayer(float x, float y, int id, double direction, GameState gameState) {
+        this.id = id;
         this.x = x;
         this.y = y;
-        this.color = color;
+        this.color = COLORS[id];
+        this.direction = direction;
 
         this.gameState = gameState;
 
@@ -49,54 +52,20 @@ public class NetworkPlayer implements Player {
         return x;
     }
 
-    public void setX(float x) {
-        this.x = x;
-    }
-
     public float getY() {
         return y;
-    }
-
-    public void setY(float y) {
-        this.y = y;
     }
 
     public Color getColor() {
         return color;
     }
 
-    public void setColor(Color color) {
-        this.color = color;
-    }
-
-    public float getDirection() {
+    public double getDirection() {
         return direction;
     }
 
-    public void setDirection(float direction) {
-        this.direction = direction;
-    }
-
-    public void turn(boolean direction) {
-        if (direction) {
-            this.direction += turnAngle;
-        } else {
-            this.direction -= turnAngle;
-        }
-    }
-
-    public boolean isDead() {
-        return isDead;
-    }
-
-    @Override
-    public void setTurningLeft(boolean turningLeft) {
-        isTurningLeft = turningLeft;
-    }
-
-    @Override
-    public void setTurningRight(boolean turningRight) {
-        isTurningRight = turningRight;
+    public int getState() {
+        return state;
     }
 
     public List<Rectangle> getRenderList() { return renderList; }
@@ -105,47 +74,55 @@ public class NetworkPlayer implements Player {
         renderList.add(rectangle);
     }
 
+    //todo videti šta s ovim - NetworkPlayer se generalno neće kretati pravo, tj. ova metoda je višak u interfejsu
+    //todo Player, ali je neophodna zbog načina na koji se igra renderuje. Trebalo bi preferirati moveTo
     public void move() {
+        moveTo((int) (x + speed * Math.cos(direction)), (int) (y + speed * Math.sin(direction)));
+    }
+
+    @Override
+    public void moveTo(int newX, int newY) {
         Rectangle newHead = head; // ako imas null pointer exception brisi ovo
 
         Vector2 currentPosition = new Vector2(x, y);
-        Vector2 newPosition = new Vector2((float) (x + speed * Math.cos(direction)),
-                                          (float) (y + speed * Math.sin(direction)));
+        Vector2 newPosition     = new Vector2(newX, newY);
 
         //if (newPosition.x < gameState.getX() && newPosition.y < gameState.getY()
         //&& newPosition.x > 0 && newPosition.y > 0) {
         try {
-            for (int i = (int) Math.min(currentPosition.x, newPosition.x);
-                 i <= Math.max(currentPosition.x, newPosition.x);
-                 i++) {
-                for (int j = (int) Math.min(currentPosition.y, newPosition.y);
-                     j <= Math.max(currentPosition.y, newPosition.y);
-                     j++) {
-                    Rectangle r = gameState.getGameMatrix()[i][j];
+            if (state == STATE_VISIBLE) { //ne želimo okupirati polja ako je linija INVISIBLE
+                for (int i = (int) Math.min(currentPosition.x, newPosition.x);
+                     i <= Math.max(currentPosition.x, newPosition.x);
+                     i++) {
+                    for (int j = (int) Math.min(currentPosition.y, newPosition.y);
+                         j <= Math.max(currentPosition.y, newPosition.y);
+                         j++) {
+                        Rectangle r = gameState.getGameMatrix()[i][j];
 
-                    float[] vert = {
-                            r.x, r.y,
-                            r.x, r.y + 1,
-                            r.x + 1, r.y + 1,
-                            r.x + 1, r.y
-                    };
+                        float[] vert = {
+                                r.x, r.y,
+                                r.x, r.y + 1,
+                                r.x + 1, r.y + 1,
+                                r.x + 1, r.y
+                        };
 
-                    Array<Vector2> vert2 = new Array<Vector2>();
-                    vert2.add(new Vector2(r.x, r.y));
-                    vert2.add(new Vector2(r.x, r.y + 1));
-                    vert2.add(new Vector2(r.x + 1, r.y + 1));
-                    vert2.add(new Vector2(r.x + 1, r.y));
+                        Array<Vector2> vert2 = new Array<Vector2>();
+                        vert2.add(new Vector2(r.x, r.y));
+                        vert2.add(new Vector2(r.x, r.y + 1));
+                        vert2.add(new Vector2(r.x + 1, r.y + 1));
+                        vert2.add(new Vector2(r.x + 1, r.y));
 
-                    Polygon pr = new Polygon(vert);
+                        Polygon pr = new Polygon(vert);
 
-                    if (Intersector.intersectLinePolygon(currentPosition, newPosition, pr)) {
-                        if (gameState.isOccupied(i, j) && !head.equals(r)) {
-                            isDead = true;
-                        } else {
-                            gameState.setOccupied(i, j);
-                            addRectangle(r);
-                            if (Intersector.isPointInPolygon(vert2, newPosition)) {
-                                newHead = r;
+                        if (Intersector.intersectLinePolygon(currentPosition, newPosition, pr)) {
+                            if (gameState.isOccupied(i, j) && !head.equals(r)) {
+                                state = STATE_DEAD;
+                            } else {
+                                gameState.setOccupied(i, j);
+                                addRectangle(r);
+                                if (Intersector.isPointInPolygon(vert2, newPosition)) {
+                                    newHead = r;
+                                }
                             }
                         }
                     }
@@ -155,13 +132,18 @@ public class NetworkPlayer implements Player {
             x = (int) newPosition.x;
             y = (int) newPosition.y;
         } catch (ArrayIndexOutOfBoundsException e) {
-            isDead = true;
+            state = STATE_DEAD;
         }
         //} else {
-        //isDead = true;
+        //getState = true;
         //}
 
 
         head = newHead;
+    }
+
+    @Override
+    public void setDirection(double direction) {
+        this.direction = direction;
     }
 }

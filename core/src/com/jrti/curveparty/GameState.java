@@ -1,6 +1,5 @@
 package com.jrti.curveparty;
 
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Rectangle;
 
 import java.util.ArrayList;
@@ -16,7 +15,6 @@ public class GameState {
     private int y;
     private int numOfPlayers;
 
-    private Color[] colors = {Color.CYAN, Color.RED, Color.YELLOW, Color.GREEN};
 
     private Rectangle[][] gameMatrix;
     private boolean[][]   occupiedFields;
@@ -62,7 +60,7 @@ public class GameState {
     }
 
     public LocalPlayer addLocalPlayer(int id, int xPos, int yPos) {
-        LocalPlayer p = new LocalPlayer(xPos, yPos, colors[id], this);
+        LocalPlayer p = new LocalPlayer(xPos, yPos, 0, id, this);
         playerList.add(p);
         return p;
     }
