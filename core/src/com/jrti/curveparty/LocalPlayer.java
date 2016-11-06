@@ -88,11 +88,11 @@ public class LocalPlayer implements Player {
     }
 
     public void move() {
-        moveTo((int) (x + speed * Math.cos(direction)), (int) (y + speed * Math.sin(direction)));
+        moveTo((int) (x + speed * Math.cos(direction)), (int) (y + speed * Math.sin(direction)), 1);
     }
 
     @Override
-    public void moveTo(int newX, int newY) {
+    public void moveTo(int newX, int newY, int thickness) {
         Rectangle newHead = head; // ako imas null pointer exception brisi ovo
 
         Vector2 currentPosition = new Vector2(x, y);
