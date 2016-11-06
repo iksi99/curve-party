@@ -2,13 +2,9 @@ package com.jrti.curveparty;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Rectangle;
-import com.badlogic.gdx.scenes.scene2d.Actor;
-import com.badlogic.gdx.scenes.scene2d.InputEvent;
-import com.badlogic.gdx.scenes.scene2d.InputListener;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 /**
  * Created by cactoss on 2.11.2016..
@@ -20,28 +16,24 @@ public class GameState {
     private int y;
     private int numOfPlayers;
 
-
+    private Color[] colors = {Color.CYAN, Color.RED, Color.YELLOW, Color.GREEN};
 
     private Rectangle[][] gameMatrix;
-    private int[][] occupiedFields;
+    private boolean[][]   occupiedFields;
     private List<Player> playerList = new ArrayList<Player>();
 
-    public GameState(int x, int y, int numOfPlayers)
-    {
+    public GameState(int x, int y, int numOfPlayers) {
+        this.x = x;
+        this.y = y;
+        this.numOfPlayers = numOfPlayers;
         gameMatrix = new Rectangle[x][y];
-        occupiedFields = new int[x][y];
+        occupiedFields = new boolean[x][y];
 
-        for (int i = 0; i < x; i++)
-        {
-            for (int j = 0; j < y; j++)
-            {
-                //System.out.println("0");
+        for (int i = 0; i < x; i++) {
+            for (int j = 0; j < y; j++) {
                 gameMatrix[i][j] = new Rectangle(i, j, 0.5f, 0.5f);
-                occupiedFields[i][j] = 0;
             }
         }
-
-        makePlayers();
     }
 
     public List<Player> getPlayerList() {
@@ -52,9 +44,6 @@ public class GameState {
         return gameMatrix;
     }
 
-    public int[][] getOccupiedFields() {
-        return occupiedFields;
-    }
 
     public int getX() {
         return x;
@@ -64,18 +53,17 @@ public class GameState {
         return y;
     }
 
-    public boolean isOccupied(int x, int y)
-    {
-        if (occupiedFields[x][y] != 0) return true;
-        else return false;
+    public boolean isOccupied(int x, int y) {
+        return occupiedFields[x][y];
     }
 
-    public void setOccupied(int x, int y)
-    {
-        occupiedFields[x][y] = 1;
+    public void setOccupied(int x, int y) {
+        occupiedFields[x][y] = true;
     }
 
-    public void makePlayers() {
-        playerList.add(new LocalPlayer(100, 100, Color.CYAN, this));
+    public LocalPlayer addLocalPlayer(int id, int xPos, int yPos) {
+        LocalPlayer p = new LocalPlayer(xPos, yPos, colors[id], this);
+        playerList.add(p);
+        return p;
     }
 }

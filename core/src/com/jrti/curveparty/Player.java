@@ -10,33 +10,26 @@ import java.util.List;
  */
 
 public interface Player {
-    public float getX();
 
-    public void setX(float x);
+    float getX();
 
-    public float getY();
+    float getY();
 
-    public void setY(float y);
+    Color getColor();
 
-    public Color getColor();
+    float getDirection();
 
-    public void setColor(Color color);
+    void turn(boolean direction);
 
-    public float getDirection();
+    boolean isDead();
 
-    public void setDirection(float direction);
+    List<Rectangle> getRenderList();
 
-    public void turn(boolean direction);
+    void addRectangle(Rectangle rectangle);
 
-    public boolean isDead();
+    void setTurningRight(boolean x);
 
-    public List<Rectangle> getRenderList();
+    void setTurningLeft(boolean x);
 
-    public void addRectangle(Rectangle rectangle);
-
-    public void setTurningRight(boolean x);
-
-    public void setTurningLeft(boolean x);
-
-    public void move();
+    void move();
 }

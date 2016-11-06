@@ -1,17 +1,12 @@
 package com.jrti.curveparty;
 
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.g3d.particles.influencers.ColorInfluencer;
 import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Polygon;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.scenes.scene2d.Actor;
-import com.badlogic.gdx.scenes.scene2d.InputEvent;
-import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.utils.Array;
 
-import java.awt.geom.Line2D;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,20 +15,23 @@ import java.util.List;
  */
 
 public class LocalPlayer implements Player {
-    private float x;
-    private float y;
-    private Color color;
+    public static final  boolean DIRECTION_LEFT  = true; //counter-clockwise
+    public static final  boolean DIRECTION_RIGHT = false;
+    private static final double  TURNING_ANGLE   = 0.05f;
+
+    private float     x;
+    private float     y;
+    private Color     color;
     private Rectangle head;
 
-    private boolean isDead = false;
-    private boolean isTurningLeft = false;
+    private boolean isDead         = false;
+    private boolean isTurningLeft  = false;
     private boolean isTurningRight = false;
 
     private GameState gameState;
 
-    private float speed = 1.3f;
+    private float speed     = 1.3f;
     private float direction = 0.5f;
-    private float turnAngle = 0.05f;
 
     private List<Rectangle> renderList = new ArrayList<Rectangle>();
 
@@ -44,49 +42,32 @@ public class LocalPlayer implements Player {
 
         this.gameState = gameState;
 
-        this.head = gameState.getGameMatrix()[(int)x][(int)y];
+        this.head = gameState.getGameMatrix()[(int) x][(int) y];
         renderList.add(head);
-        gameState.setOccupied((int)x, (int)y);
+        gameState.setOccupied((int) x, (int) y);
     }
 
     public float getX() {
         return x;
     }
 
-    public void setX(float x) {
-        this.x = x;
-    }
-
     public float getY() {
         return y;
-    }
-
-    public void setY(float y) {
-        this.y = y;
     }
 
     public Color getColor() {
         return color;
     }
 
-    public void setColor(Color color) {
-        this.color = color;
-    }
-
     public float getDirection() {
         return direction;
     }
 
-    public void setDirection(float direction) {
-        this.direction = direction;
-    }
-
-    public void turn(boolean direction)
-    {
-        if(direction){
-            this.direction += turnAngle;
+    public void turn(boolean direction) {
+        if (direction == DIRECTION_LEFT) {
+            this.direction += TURNING_ANGLE;
         } else {
-            this.direction -= turnAngle;
+            this.direction -= TURNING_ANGLE;
         }
     }
 
@@ -106,17 +87,16 @@ public class LocalPlayer implements Player {
 
     public List<Rectangle> getRenderList() { return renderList; }
 
-    public void addRectangle(Rectangle rectangle)
-    {
+    public void addRectangle(Rectangle rectangle) {
         renderList.add(rectangle);
     }
 
-    public void move()
-    {
+    public void move() {
         Rectangle newHead = head;
 
         Vector2 currentPosition = new Vector2(x, y);
-        Vector2 newPosition = new Vector2((float)(x + speed * Math.cos(direction)), (float)(y + speed * Math.sin(direction)));
+        Vector2 newPosition = new Vector2((float) (x + speed * Math.cos(direction)),
+                                          (float) (y + speed * Math.sin(direction)));
 
         try {
             for (int i = (int) Math.min(currentPosition.x, newPosition.x);
@@ -163,9 +143,9 @@ public class LocalPlayer implements Player {
         }
 
         if (isTurningLeft) {
-            turn(true);
+            turn(DIRECTION_LEFT);
         } else if (isTurningRight) {
-            turn(false);
+            turn(DIRECTION_RIGHT);
         }
 
         head = newHead;
