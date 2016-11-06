@@ -28,8 +28,6 @@ public class Network {
     private static final String JSON_GI_PLAYERS           = "players";
     private static final String JSON_GI_X                 = "x";
     private static final String JSON_GI_Y                 = "y";
-    private static final String JSON_GI_LINE_THICKNESS    = "thickness";
-    private static final String JSON_GI_TURNING_ANGLE     = "turnAngle";
     private static final String JSON_GI_TIMESTEP_DELAY    = "delay";
     private static final String JSON_GI_TIMESTEP_INTERVAL = "interval";
 
@@ -37,8 +35,9 @@ public class Network {
     private static final String JSON_PI_STATE     = "state";
     private static final String JSON_PI_X         = "x";
     private static final String JSON_PI_Y         = "y";
-    private static final String JSON_PI_DIRECTION = "dir";
-    private static final String JSON_PI_SPEED     = "speed";
+    private static final String JSON_PI_THICKNESS = "thk";
+//    private static final String JSON_PI_DIRECTION = "dir";
+//    private static final String JSON_PI_SPEED     = "speed";
 
     private static final String JSON_PU_X          = "x";
     private static final String JSON_PU_Y          = "y";
@@ -90,25 +89,22 @@ public class Network {
          * @param numOfPlayers broj igrača
          * @param x            veličina grida (x osa)
          * @param y            veličina grida (y osa)
-         * @param thickness    širina linije
-         * @param turningAngle ugao pod kojim linija skreće
          * @param delay        inicijalno zakašnjenje (do drugog koraka), u milisekundama
          * @param interval     interval između svakog narednog koraka, u milisekundama
          */
-        void onGameStarted(int numOfPlayers, int x, int y, int thickness, double turningAngle, int delay,
-                           int interval);
+        void onGameStarted(int numOfPlayers, int x, int y, int delay, int interval);
 
         /**
          * Poziva se u regularnim intervalima (u svakom tick-u), sa novim podacima za svakog igrača
          *
          * @param id    id igrača na koga se podaci odnose
          * @param state 0, 1 ili 2 u zavisnosti da li je visible, invisible ili dead
-         * @param direction   smer kretanja (u radijanima)
-         * @param speed brzina kretanja
+    //   * @param direction   smer kretanja (u radijanima)
+    //   * @param speed brzina kretanja
          * @param x     nova x koordinata igrača (pretpostaviti da se kretao pravolinijski od prethodne)
          * @param y     nova y koordinata igrača (pretpostaviti da se kretao pravolinijski od prethodne)
          */
-        void onPlayerAdvanced(int id, int state, int x, int y, double direction, double speed);
+        void onPlayerAdvanced(int id, int state, int x, int y, double thickness);
 
         /**
          * Poziva se kada treba dodati powerup na ekran. Veličina je konstantna. Bilo bi lepo da ikonica bude krug,
@@ -124,7 +120,7 @@ public class Network {
 
         /**
          * Treba da vrati u kom smeru igrač skreće. Poziva se u regularnom intervalu (v.
-         * {@link #onGameStarted(int, int, int, int, double, int, int)}), nakon svih onPlayerAdvanced
+         * {@link #onGameStarted(int, int, int, int, int)}), nakon svih onPlayerAdvanced
          *
          * @return jedno od {@link #DIRECTION_LEFT}, {@link #DIRECTION_STRAIGHT}, {@link #DIRECTION_RIGHT}
          */
@@ -252,15 +248,13 @@ public class Network {
                             final int players = gameInfo.getInt(JSON_GI_PLAYERS),
                                     x = gameInfo.getInt(JSON_GI_X),
                                     y = gameInfo.getInt(JSON_GI_Y),
-                                    thk = gameInfo.getInt(JSON_GI_LINE_THICKNESS),
                                     intv = gameInfo.getInt(JSON_GI_TIMESTEP_INTERVAL),
                                     delay = gameInfo.getInt(JSON_GI_TIMESTEP_DELAY);
-                            final double angle = gameInfo.getDouble(JSON_GI_TURNING_ANGLE);
                             this.players = players;
                             Gdx.app.postRunnable(new Runnable() {
                                 @Override
                                 public void run() {
-                                    callbacks.onGameStarted(players, x, y, thk, angle, delay, intv);
+                                    callbacks.onGameStarted(players, x, y, delay, intv);
                                 }
                             });
                             gameStarted = true;
@@ -268,19 +262,25 @@ public class Network {
                         }
                         for (int i = 0; i < this.players; i++) {
                             final JsonValue playerInfo = json.get(i);
-                            final int id = playerInfo.getInt(JSON_PI_ID), state = playerInfo.getInt(JSON_PI_STATE),
-                                    x = playerInfo.getInt(JSON_PI_X), y = playerInfo.getInt(JSON_PI_Y);
-                            final double dir = playerInfo.getInt(JSON_PI_DIRECTION),
-                                    spd = playerInfo.getInt(JSON_PI_SPEED);
+                            final int id = playerInfo.getInt(JSON_PI_ID), state = playerInfo.getInt(JSON_PI_STATE), x, y;
+                            if(state != Player.STATE_DEAD) {
+                                x = playerInfo.getInt(JSON_PI_X);
+                                y = playerInfo.getInt(JSON_PI_Y);
+                            } else {
+                                x=y=-1;
+                            }
+                            final double thickness = playerInfo.getDouble(JSON_PI_THICKNESS);
+                            //final double dir = playerInfo.getInt(JSON_PI_DIRECTION),
+                            //        spd = playerInfo.getInt(JSON_PI_SPEED);
                             Gdx.app.postRunnable(new Runnable() {
                                 @Override
                                 public void run() {
-                                    callbacks.onPlayerAdvanced(id, state, x, y, dir, spd);
+                                    callbacks.onPlayerAdvanced(id, state, x, y, thickness);
                                 }
                             });
                         }
-                        for (int i = this.players; i < l; i++) {
-                            final JsonValue powerupInfo = json.get(i);
+                        if(this.players != l) {
+                            final JsonValue powerupInfo = json.get(l-1);
                             final int x = powerupInfo.getInt(JSON_PU_X),
                                     y = powerupInfo.getInt(JSON_PU_Y),
                                     type = powerupInfo.getInt(JSON_PU_TYPE),
