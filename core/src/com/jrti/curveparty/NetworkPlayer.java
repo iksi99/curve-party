@@ -16,18 +16,18 @@ import java.util.List;
 
 public class NetworkPlayer implements Player {
 
-    private float x;
-    private float y;
-    private Color color;
+    private float     x;
+    private float     y;
+    private Color     color;
     private Rectangle head;
 
-    private boolean isDead = false;
-    private boolean isTurningLeft = false;
+    private boolean isDead         = false;
+    private boolean isTurningLeft  = false;
     private boolean isTurningRight = false;
 
     private GameState gameState;
 
-    private float speed = 2f;
+    private float speed     = 2f;
     private float direction = 1f;
     private float turnAngle = 0.05f;
 
@@ -77,9 +77,8 @@ public class NetworkPlayer implements Player {
         this.direction = direction;
     }
 
-    public void turn(boolean direction)
-    {
-        if(direction){
+    public void turn(boolean direction) {
+        if (direction) {
             this.direction += turnAngle;
         } else {
             this.direction -= turnAngle;
@@ -102,20 +101,19 @@ public class NetworkPlayer implements Player {
 
     public List<Rectangle> getRenderList() { return renderList; }
 
-    public void addRectangle(Rectangle rectangle)
-    {
+    public void addRectangle(Rectangle rectangle) {
         renderList.add(rectangle);
     }
 
-    public void move()
-    {
+    public void move() {
         Rectangle newHead = head; // ako imas null pointer exception brisi ovo
 
         Vector2 currentPosition = new Vector2(x, y);
-        Vector2 newPosition = new Vector2((float)(x + speed * Math.cos(direction)), (float)(y + speed * Math.sin(direction)));
+        Vector2 newPosition = new Vector2((float) (x + speed * Math.cos(direction)),
+                                          (float) (y + speed * Math.sin(direction)));
 
         //if (newPosition.x < gameState.getX() && newPosition.y < gameState.getY()
-                //&& newPosition.x > 0 && newPosition.y > 0) {
+        //&& newPosition.x > 0 && newPosition.y > 0) {
         try {
             for (int i = (int) Math.min(currentPosition.x, newPosition.x);
                  i <= Math.max(currentPosition.x, newPosition.x);
@@ -160,9 +158,8 @@ public class NetworkPlayer implements Player {
             isDead = true;
         }
         //} else {
-            //isDead = true;
+        //isDead = true;
         //}
-
 
 
         head = newHead;

@@ -95,8 +95,8 @@ public class LocalPlayer implements Player {
         Rectangle newHead = head;
 
         Vector2 currentPosition = new Vector2(x, y);
-        Vector2 newPosition     = new Vector2((float) (x + speed * Math.cos(direction)),
-                                              (float) (y + speed * Math.sin(direction)));
+        Vector2 newPosition = new Vector2((float) (x + speed * Math.cos(direction)),
+                                          (float) (y + speed * Math.sin(direction)));
 
         try {
             for (int i = (int) Math.min(currentPosition.x, newPosition.x);
