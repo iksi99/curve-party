@@ -17,7 +17,8 @@ public class CurveParty extends ApplicationAdapter {
     private ShapeRenderer      ren;
     private OrthographicCamera camera;
 
-    private Player localPlayer;
+    private LocalPlayer localPlayer;
+            //u redu je da znamo koji je "naš" player i deklarišemo kao Local kad ga već izdvajamo
 
     private GameState gameState = new GameState(GRID_X, GRID_Y, 1);
 
@@ -73,7 +74,7 @@ public class CurveParty extends ApplicationAdapter {
             }
 
             ren.end();
-            if (!p.isDead()) {
+            if (p.getState() != Player.STATE_DEAD) {
                 p.move();
 
             }
