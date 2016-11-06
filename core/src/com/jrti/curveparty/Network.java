@@ -40,6 +40,11 @@ public class Network {
     private static final String JSON_PI_DIRECTION = "dir";
     private static final String JSON_PI_SPEED     = "speed";
 
+    private static final String JSON_PU_X          = "x";
+    private static final String JSON_PU_Y          = "y";
+    private static final String JSON_PU_TYPE       = "type";
+    private static final String JSON_PU_TIME_ALIVE = "ttl";
+
     private static final ExecutorService executor = Executors.newSingleThreadExecutor();
 
     //================== INTERFACES (callbacks) ==============================================================
@@ -98,12 +103,24 @@ public class Network {
          *
          * @param id    id igrača na koga se podaci odnose
          * @param state 0, 1 ili 2 u zavisnosti da li je visible, invisible ili dead
-         * @param dir   smer kretanja (u radijanima)
+         * @param direction   smer kretanja (u radijanima)
          * @param speed brzina kretanja
          * @param x     nova x koordinata igrača (pretpostaviti da se kretao pravolinijski od prethodne)
          * @param y     nova y koordinata igrača (pretpostaviti da se kretao pravolinijski od prethodne)
          */
-        void onPlayerAdvanced(int id, int state, int x, int y, double dir, double speed);
+        void onPlayerAdvanced(int id, int state, int x, int y, double direction, double speed);
+
+        /**
+         * Poziva se kada treba dodati powerup na ekran. Veličina je konstantna. Bilo bi lepo da ikonica bude krug,
+         * bez obzira što se za potrebe collision detectiona uzima kvadrat. Pošto ne postoji onPowerUpRemoved,
+         * treba proveravati i tickove (smanjivati pri svakom) i collision detection u odnosu na sve igrače, tako
+         * da se powerup skloni sa mape u slučaju da ga neko pokupi.
+         * @param type videti PowerUp klasu na serveru, PowerUp.Type#id
+         * @param x x koordinata centra
+         * @param y y koordinata centra
+         * @param timeAlive vreme koliko ovaj powerup treba da postoji (tickova, iliti poziva onPlayerAdvanced metodi)
+         */
+        void onPowerUpAdded(int type, int x, int y, int timeAlive);
 
         /**
          * Treba da vrati u kom smeru igrač skreće. Poziva se u regularnom intervalu (v.
@@ -207,6 +224,7 @@ public class Network {
                 final WebSocket gameSocket = WebSockets.newSocket(HOST + START + roomId + "/" + id);
                 gameSocket.addListener(new WebSocketListener() {
                     boolean gameStarted = false;
+                    int players;
 
                     @Override
                     public boolean onOpen(WebSocket webSocket) {
@@ -238,6 +256,7 @@ public class Network {
                                     intv = gameInfo.getInt(JSON_GI_TIMESTEP_INTERVAL),
                                     delay = gameInfo.getInt(JSON_GI_TIMESTEP_DELAY);
                             final double angle = gameInfo.getDouble(JSON_GI_TURNING_ANGLE);
+                            this.players = players;
                             Gdx.app.postRunnable(new Runnable() {
                                 @Override
                                 public void run() {
@@ -247,7 +266,7 @@ public class Network {
                             gameStarted = true;
                             l--;
                         }
-                        for (int i = 0; i < l; i++) {
+                        for (int i = 0; i < this.players; i++) {
                             final JsonValue playerInfo = json.get(i);
                             final int id = playerInfo.getInt(JSON_PI_ID), state = playerInfo.getInt(JSON_PI_STATE),
                                     x = playerInfo.getInt(JSON_PI_X), y = playerInfo.getInt(JSON_PI_Y);
@@ -257,6 +276,19 @@ public class Network {
                                 @Override
                                 public void run() {
                                     callbacks.onPlayerAdvanced(id, state, x, y, dir, spd);
+                                }
+                            });
+                        }
+                        for (int i = this.players; i < l; i++) {
+                            final JsonValue powerupInfo = json.get(i);
+                            final int x = powerupInfo.getInt(JSON_PU_X),
+                                    y = powerupInfo.getInt(JSON_PU_Y),
+                                    type = powerupInfo.getInt(JSON_PU_TYPE),
+                                    timeAlive = powerupInfo.getInt(JSON_PU_TIME_ALIVE);
+                            Gdx.app.postRunnable(new Runnable() {
+                                @Override
+                                public void run() {
+                                    callbacks.onPowerUpAdded(type, x, y, timeAlive);
                                 }
                             });
                         }
