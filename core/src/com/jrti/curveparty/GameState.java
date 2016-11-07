@@ -59,8 +59,8 @@ public class GameState {
         occupiedFields[x][y] = true;
     }
 
-    public LocalPlayer addLocalPlayer(int id, int xPos, int yPos) {
-        LocalPlayer p = new LocalPlayer(xPos, yPos, 0, id, this);
+    public LocalPlayer addLocalPlayer(int id, int xPos, int yPos, float direction) {
+        LocalPlayer p = new LocalPlayer(xPos, yPos, direction, id, this);
         playerList.add(p);
         return p;
     }

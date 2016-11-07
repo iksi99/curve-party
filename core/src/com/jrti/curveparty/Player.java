@@ -37,7 +37,7 @@ public interface Player {
 
     void move(); //todo v. NetworkPlayer, ovo u principu ne pripada ovde
 
-    void moveTo(int x, int y, int thickness);
+    void moveTo(float x, float y, int thickness);
 
     void setDirection(double direction);
 }

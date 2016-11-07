@@ -28,7 +28,7 @@ public class CurveParty extends ApplicationAdapter {
         ren = new ShapeRenderer();
 
         Random rnd = new Random();
-        localPlayer = gameState.addLocalPlayer(0, rnd.nextInt(GRID_X - 100) + 50, rnd.nextInt(GRID_Y - 70) + 35);
+        localPlayer = gameState.addLocalPlayer(0, rnd.nextInt(GRID_X - 100) + 50, rnd.nextInt(GRID_Y - 70) + 35, rnd.nextFloat()*6.28f);
 
         Gdx.input.setInputProcessor(new InputAdapter() {
             @Override
