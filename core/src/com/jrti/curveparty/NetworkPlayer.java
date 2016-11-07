@@ -77,18 +77,16 @@ public class NetworkPlayer implements Player {
     //todo videti šta s ovim - NetworkPlayer se generalno neće kretati pravo, tj. ova metoda je višak u interfejsu
     //todo Player, ali je neophodna zbog načina na koji se igra renderuje. Trebalo bi preferirati moveTo
     public void move() {
-        moveTo((int) (x + speed * Math.cos(direction)), (int) (y + speed * Math.sin(direction)), 1);
+        moveTo((float) (x + speed * Math.cos(direction)), (float) (y + speed * Math.sin(direction)), 1);
     }
 
     @Override
-    public void moveTo(int newX, int newY, int thickness) {
-        Rectangle newHead = head; // ako imas null pointer exception brisi ovo
+    public void moveTo(float newX, float newY, int thickness) {
+        Rectangle newHead = head;
 
         Vector2 currentPosition = new Vector2(x, y);
         Vector2 newPosition     = new Vector2(newX, newY);
 
-        //if (newPosition.x < gameState.getX() && newPosition.y < gameState.getY()
-        //&& newPosition.x > 0 && newPosition.y > 0) {
         try {
             if (state == STATE_VISIBLE) { //ne želimo okupirati polja ako je linija INVISIBLE
                 for (int i = (int) Math.min(currentPosition.x, newPosition.x);
@@ -134,9 +132,6 @@ public class NetworkPlayer implements Player {
         } catch (ArrayIndexOutOfBoundsException e) {
             state = STATE_DEAD;
         }
-        //} else {
-        //getState = true;
-        //}
 
 
         head = newHead;
