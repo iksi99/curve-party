@@ -28,7 +28,7 @@ public class LocalPlayer implements Player {
     private GameState gameState;
 
     private float speed     = 1.3f;
-    private double direction = 0.5f;
+    private double direction;
 
     private List<Rectangle> renderList = new ArrayList<Rectangle>();
 
@@ -149,7 +149,6 @@ public class LocalPlayer implements Player {
         } catch (ArrayIndexOutOfBoundsException e) {
             state = STATE_DEAD;
         }
-
         head = newHead;
     }
 

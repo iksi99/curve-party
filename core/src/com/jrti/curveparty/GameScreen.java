@@ -1,0 +1,115 @@
+package com.jrti.curveparty;
+
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.InputAdapter;
+import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.Rectangle;
+
+import java.util.Random;
+
+/**
+ * Created by cactoss on 7.11.2016..
+ */
+
+public class GameScreen implements Screen {
+    public static final int GRID_X = 960;
+    public static final int GRID_Y = 540;
+
+    private final CurveParty game;
+    private ShapeRenderer ren;
+    private OrthographicCamera camera;
+
+    private LocalPlayer localPlayer;
+    //u redu je da znamo koji je "naš" player i deklarišemo kao Local kad ga već izdvajamo
+
+    private GameState gameState = new GameState(GRID_X, GRID_Y, 1);
+
+    public GameScreen(final CurveParty game) {
+        this.game = game;
+
+        final int width = Gdx.graphics.getWidth();
+        ren = new ShapeRenderer();
+
+        Random rnd = new Random();
+        localPlayer = gameState.addLocalPlayer(0, rnd.nextInt(GRID_X - 100) + 50, rnd.nextInt(GRID_Y - 70) + 35, rnd.nextFloat()*6.28f);
+
+        Gdx.input.setInputProcessor(new InputAdapter() {
+            @Override
+            public boolean touchDown(int x, int y, int pointer, int button) {
+                if (x <= width / 2) {
+                    localPlayer.setTurningLeft(true);
+                } else {
+                    localPlayer.setTurningRight(true);
+                }
+                return true;
+            }
+
+            @Override
+            public boolean touchUp(int screenX, int screenY, int pointer, int button) {
+                if (screenX <= width / 2) {
+                    localPlayer.setTurningLeft(false);
+                } else {
+                    localPlayer.setTurningRight(false);
+                }
+                return true;
+            }
+        });
+
+        camera = new OrthographicCamera(GRID_X, GRID_Y);
+        camera.position.set(camera.viewportWidth / 2, camera.viewportHeight / 2, 0);
+        camera.update();
+    }
+
+    @Override
+    public void render(float delta) {
+        Gdx.gl.glClearColor(0, 0, 0, 1);
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+
+        camera.update();
+        ren.setProjectionMatrix(camera.combined);
+
+        for (Player p : gameState.getPlayerList()) {
+            ren.begin(ShapeRenderer.ShapeType.Filled);
+
+            ren.setColor(p.getColor());
+            for (Rectangle r : p.getRenderList()) {
+                ren.rect(r.x, r.y, 1, 1);
+            }
+
+            ren.end();
+            if (p.getState() != Player.STATE_DEAD) {
+                p.move();
+
+            }
+        }
+    }
+
+    @Override
+    public void resize(int width, int height) {
+    }
+
+    @Override
+    public void show() {
+    }
+
+    @Override
+    public void hide() {
+    }
+
+    @Override
+    public void pause() {
+    }
+
+    @Override
+    public void resume() {
+    }
+
+
+    @Override
+    public void dispose() {
+        ren.dispose();
+    }
+}
