@@ -3,6 +3,7 @@ package com.jrti.curveparty;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.utils.JsonReader;
 import com.badlogic.gdx.utils.JsonValue;
+import com.badlogic.gdx.utils.StringBuilder;
 import com.github.czyzby.websocket.WebSocket;
 import com.github.czyzby.websocket.WebSocketListener;
 import com.github.czyzby.websocket.WebSockets;
@@ -49,7 +50,7 @@ public class Network {
     //================== INTERFACES (callbacks) ==============================================================
 
     /**
-     * Komunikacija sa pozivaocem {@link #findGame(String, MatchmakingCallbacks)}. Posao websocket-a se izvršava
+     * Komunikacija sa pozivaocem {@link #findGame(String, int, MatchmakingCallbacks)}. Posao websocket-a se izvršava
      * u background thread-u, ali se metode iz ovog interfejsa pozivaju sa main thread-a (tako da su UI-safe).
      * Implementirati ili tako da klasa u kojoj se nalazi pozivalac implementuje ovaj interfejs i prosleđuje this,
      * ili preko anonimne unutrašnje klase
@@ -149,7 +150,7 @@ public class Network {
      *
      * @param nickname nickname koji će igrač koristiti u igri, trenutno se ne prikazuje nigde niti ga server šalje
      */
-    public static void findGame(final String nickname, final MatchmakingCallbacks callbacks) {
+    public static void findGame(final String nickname, final int roomSize, final MatchmakingCallbacks callbacks) {
         executor.submit(new Runnable() {
             @Override
             public void run() {
@@ -157,8 +158,12 @@ public class Network {
                 mmSocket.addListener(new WebSocketListener() {
                     @Override
                     public boolean onOpen(WebSocket webSocket) {
-                        JsonValue json = new JsonValue(nickname);
-                        json.setName(JSON_MM_NAME);
+                        StringBuilder json = new StringBuilder(64);
+                        json.append("{\"name\":\"")
+                            .append(nickname)
+                            .append("\",\"roomsize\":")
+                            .append(roomSize)
+                            .append("}");
                         webSocket.send(json.toString());
                         return FULLY_HANDLED;
                     }
@@ -295,11 +300,10 @@ public class Network {
                         Gdx.app.postRunnable(new Runnable() {
                             @Override
                             public void run() {
-                                final int dir
-                                        = callbacks.getTurningDirection(); //jer koliko se sećam za interakciju
-                                //s ulazom i izlazom moramo biti na UI thread-u, ali za networking u background-u
-                                //a pošto je razumno očekivati da će ova metoda komunicirati sa spoljnim svetom
-                                //(dodir ili nagib uređaja), wrap-ujem sve u postRunnable
+                                final int dir = callbacks.getTurningDirection(); //jer koliko se sećam za
+                                // interakciju s ulazom i izlazom moramo biti na UI thread-u, ali za networking u
+                                //background-u a pošto je razumno očekivati da će ova metoda komunicirati sa
+                                // spoljnim svetom (dodir ili nagib uređaja), wrap-ujem sve u postRunnable
                                 executor.submit(new Runnable() { //jer komunikacija sa serverom ide u pozadinu
                                     @Override
                                     public void run() {
