@@ -89,6 +89,11 @@ public class LocalPlayer implements Player {
 
     public void move() {
         moveTo((float) (x + speed * Math.cos(direction)), (float) (y + speed * Math.sin(direction)), 1);
+        if (isTurningLeft) {
+            turn(DIRECTION_LEFT);
+        } else if (isTurningRight) {
+            turn(DIRECTION_RIGHT);
+        }
     }
 
     @Override
