@@ -28,7 +28,7 @@ public class LocalPlayer implements Player {
     private GameState gameState;
 
     private float speed     = 1.3f;
-    private double direction;
+    private double direction = 0.5f;
 
     private List<Rectangle> renderList = new ArrayList<Rectangle>();
 
@@ -88,18 +88,17 @@ public class LocalPlayer implements Player {
     }
 
     public void move() {
-        moveTo((int) (x + speed * Math.cos(direction)), (int) (y + speed * Math.sin(direction)), 1);
+        moveTo((float) (x + speed * Math.cos(direction)), (float) (y + speed * Math.sin(direction)), 1);
     }
 
     @Override
-    public void moveTo(int newX, int newY, int thickness) {
-        Rectangle newHead = head; // ako imas null pointer exception brisi ovo
+    public void moveTo(float newX, float newY, int thickness) {
+        Rectangle newHead = head;
 
         Vector2 currentPosition = new Vector2(x, y);
         Vector2 newPosition     = new Vector2(newX, newY);
 
-        //if (newPosition.x < gameState.getX() && newPosition.y < gameState.getY()
-        //&& newPosition.x > 0 && newPosition.y > 0) {
+
         try {
             if (state == STATE_VISIBLE) { //ne želimo okupirati polja ako je linija INVISIBLE
                 for (int i = (int) Math.min(currentPosition.x, newPosition.x);
@@ -140,15 +139,11 @@ public class LocalPlayer implements Player {
                 }
             }
 
-            x = (int) newPosition.x;
-            y = (int) newPosition.y;
+            x =  newPosition.x;
+            y =  newPosition.y;
         } catch (ArrayIndexOutOfBoundsException e) {
             state = STATE_DEAD;
         }
-        //} else {
-        //getState = true;
-        //}
-
 
         head = newHead;
     }
