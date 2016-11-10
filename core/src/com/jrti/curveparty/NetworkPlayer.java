@@ -74,8 +74,6 @@ public class NetworkPlayer implements Player {
         renderList.add(rectangle);
     }
 
-    //todo videti šta s ovim - NetworkPlayer se generalno neće kretati pravo, tj. ova metoda je višak u interfejsu
-    //todo Player, ali je neophodna zbog načina na koji se igra renderuje. Trebalo bi preferirati moveTo
     public void move() {
         moveTo((float) (x + speed * Math.cos(direction)), (float) (y + speed * Math.sin(direction)), 1);
     }
