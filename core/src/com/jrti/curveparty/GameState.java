@@ -1,9 +1,12 @@
 package com.jrti.curveparty;
 
+import com.badlogic.gdx.math.GridPoint2;
 import com.badlogic.gdx.math.Rectangle;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created by cactoss on 2.11.2016..
@@ -16,8 +19,8 @@ public class GameState {
     private int numOfPlayers;
 
 
-    private Rectangle[][] gameMatrix;
-    private boolean[][]   occupiedFields;
+    private Rectangle[][]   gameMatrix;
+    private Set<GridPoint2> occupiedFields;
     private List<Player> playerList = new ArrayList<Player>();
 
     public GameState(int x, int y, int numOfPlayers) {
@@ -25,7 +28,7 @@ public class GameState {
         this.y = y;
         this.numOfPlayers = numOfPlayers;
         gameMatrix = new Rectangle[x][y];
-        occupiedFields = new boolean[x][y];
+        occupiedFields = new HashSet<GridPoint2>();
 
         for (int i = 0; i < x; i++) {
             for (int j = 0; j < y; j++) {
@@ -51,12 +54,12 @@ public class GameState {
         return y;
     }
 
-    public boolean isOccupied(int x, int y) {
-        return occupiedFields[x][y];
+    public boolean isOccupied(GridPoint2 p) {
+        return occupiedFields.contains(p);
     }
 
-    public void setOccupied(int x, int y) {
-        occupiedFields[x][y] = true;
+    public void setOccupied(GridPoint2 p) {
+        occupiedFields.add(p);
     }
 
     public LocalPlayer addLocalPlayer(int id, int xPos, int yPos, float direction) {

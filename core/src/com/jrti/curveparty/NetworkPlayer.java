@@ -1,6 +1,7 @@
 package com.jrti.curveparty;
 
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.math.GridPoint2;
 import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Polygon;
 import com.badlogic.gdx.math.Rectangle;
@@ -45,7 +46,7 @@ public class NetworkPlayer implements Player {
 
         this.head = gameState.getGameMatrix()[(int) x][(int) y];
         renderList.add(head);
-        gameState.setOccupied((int) x, (int) y);
+        gameState.setOccupied(new GridPoint2((int)x, (int)y));
     }
 
     public float getX() {
@@ -68,18 +69,19 @@ public class NetworkPlayer implements Player {
         return state;
     }
 
-    public List<Rectangle> getRenderList() { return renderList; }
+    public List<GridPoint2> getRenderList() { return null;}//return renderList; }
 
-    public void addRectangle(Rectangle rectangle) {
+    public void occupy(Rectangle rectangle) {
         renderList.add(rectangle);
     }
 
-    public void move() {
-        moveTo((float) (x + speed * Math.cos(direction)), (float) (y + speed * Math.sin(direction)), 1);
+    public List<GridPoint2> move() {
+        moveTo((int) (x + speed * Math.cos(direction)), (int) (y + speed * Math.sin(direction)), 1);
+        return null;
     }
 
     @Override
-    public void moveTo(float newX, float newY, int thickness) {
+    public List<GridPoint2> moveTo(float newX, float newY, int thickness) {
         Rectangle newHead = head;
 
         Vector2 currentPosition = new Vector2(x, y);
@@ -111,11 +113,11 @@ public class NetworkPlayer implements Player {
                         Polygon pr = new Polygon(vert);
 
                         if (Intersector.intersectLinePolygon(currentPosition, newPosition, pr)) {
-                            if (gameState.isOccupied(i, j) && !head.equals(r)) {
+                            if (gameState.isOccupied(new GridPoint2(i, j)) && !head.equals(r)) {
                                 state = STATE_DEAD;
                             } else {
-                                gameState.setOccupied(i, j);
-                                addRectangle(r);
+                                gameState.setOccupied(new GridPoint2(i, j));
+                                occupy(r);
                                 if (Intersector.isPointInPolygon(vert2, newPosition)) {
                                     newHead = r;
                                 }
@@ -133,6 +135,7 @@ public class NetworkPlayer implements Player {
 
 
         head = newHead;
+        return null;
     }
 
     @Override
