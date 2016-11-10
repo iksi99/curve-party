@@ -19,7 +19,7 @@ public interface Player {
 
     int STATE_VISIBLE = 0, STATE_INVISIBLE = 1, STATE_DEAD = 2;
 
-    double TURNING_ANGLE = 0.05f;
+    double TURNING_ANGLE = 0.05;
 
     float getX();
 
@@ -35,7 +35,7 @@ public interface Player {
 
     void addRectangle(Rectangle rectangle);
 
-    void move(); //todo v. NetworkPlayer, ovo u principu ne pripada ovde
+    void move();
 
     void moveTo(float x, float y, int thickness);
 
