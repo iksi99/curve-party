@@ -1,7 +1,7 @@
 package com.jrti.curveparty;
 
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.math.GridPoint2;
 
 import java.util.List;
 
@@ -20,6 +20,7 @@ public interface Player {
     int STATE_VISIBLE = 0, STATE_INVISIBLE = 1, STATE_DEAD = 2;
 
     double TURNING_ANGLE = 0.05;
+    int DEFAULT_THICKNESS = 3;
 
     float getX();
 
@@ -31,13 +32,11 @@ public interface Player {
 
     int getState();
 
-    List<Rectangle> getRenderList();
+    List<GridPoint2> getRenderList();
 
-    void addRectangle(Rectangle rectangle);
+    List<GridPoint2> move();
 
-    void move();
-
-    void moveTo(float x, float y, int thickness);
+    List<GridPoint2> moveTo(float x, float y, int thickness);
 
     void setDirection(double direction);
 }

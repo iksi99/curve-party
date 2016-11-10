@@ -1,14 +1,12 @@
 package com.jrti.curveparty;
 
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.math.Intersector;
-import com.badlogic.gdx.math.Polygon;
-import com.badlogic.gdx.math.Rectangle;
-import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.math.GridPoint2;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created by cactoss on 31.10.2016..
@@ -19,7 +17,6 @@ public class LocalPlayer implements Player {
     private float     x;
     private float     y;
     private Color     color;
-    private Rectangle head;
 
     private int     state          = STATE_VISIBLE;
     private boolean isTurningLeft  = false;
@@ -27,22 +24,20 @@ public class LocalPlayer implements Player {
 
     private GameState gameState;
 
-    private float speed     = 1.3f;
+    private float speed     = 1;
     private double direction;
+    private int thickness;
 
-    private List<Rectangle> renderList = new ArrayList<Rectangle>();
+    private List<GridPoint2> renderList = new ArrayList<GridPoint2>(1024);
 
-    public LocalPlayer(float x, float y, float direction, int id, GameState gameState) {
+    public LocalPlayer(int x, int y, float direction, int id, GameState gameState) {
         this.x = x;
         this.y = y;
         this.direction = direction;
         this.color = COLORS[id];
+        thickness = DEFAULT_THICKNESS;
 
         this.gameState = gameState;
-
-        this.head = gameState.getGameMatrix()[(int) x][(int) y];
-        renderList.add(head);
-        gameState.setOccupied((int) x, (int) y);
     }
 
     public float getX() {
@@ -81,79 +76,92 @@ public class LocalPlayer implements Player {
         isTurningRight = turningRight;
     }
 
-    public List<Rectangle> getRenderList() { return renderList; }
+    public List<GridPoint2> getRenderList() { return renderList; }
 
-    public void addRectangle(Rectangle rectangle) {
-        renderList.add(rectangle);
+    public void addRectangle(GridPoint2 point) {
+        renderList.add(point);
     }
 
-    public void move() {
-        moveTo((float) (x + speed * Math.cos(direction)), (float) (y + speed * Math.sin(direction)), 1);
+    public List<GridPoint2> move() {
+        float x1 = (float) (x + speed * Math.cos(direction));
+        float y1 = (float) (y + speed * Math.sin(direction));
+        List<GridPoint2> ret = moveTo(x1, y1, thickness);
         if (isTurningLeft) {
             turn(DIRECTION_LEFT);
         } else if (isTurningRight) {
             turn(DIRECTION_RIGHT);
         }
+        return ret;
     }
 
     @Override
-    public void moveTo(float newX, float newY, int thickness) {
-        Rectangle newHead = head;
-
-        Vector2 currentPosition = new Vector2(x, y);
-        Vector2 newPosition     = new Vector2(newX, newY);
-
-
-        try {
-            if (state == STATE_VISIBLE) { //ne želimo okupirati polja ako je linija INVISIBLE
-                for (int i = (int) Math.min(currentPosition.x, newPosition.x);
-                     i <= Math.max(currentPosition.x, newPosition.x);
-                     i++) {
-                    for (int j = (int) Math.min(currentPosition.y, newPosition.y);
-                         j <= Math.max(currentPosition.y, newPosition.y);
-                         j++) {
-                        Rectangle r = gameState.getGameMatrix()[i][j];
-
-                        float[] vert = {
-                                r.x, r.y,
-                                r.x, r.y + 1,
-                                r.x + 1, r.y + 1,
-                                r.x + 1, r.y
-                        };
-
-                        Array<Vector2> vert2 = new Array<Vector2>();
-                        vert2.add(new Vector2(r.x, r.y));
-                        vert2.add(new Vector2(r.x, r.y + 1));
-                        vert2.add(new Vector2(r.x + 1, r.y + 1));
-                        vert2.add(new Vector2(r.x + 1, r.y));
-
-                        Polygon pr = new Polygon(vert);
-
-                        if (Intersector.intersectLinePolygon(currentPosition, newPosition, pr)) {
-                            if (gameState.isOccupied(i, j) && !head.equals(r)) {
-                                state = STATE_DEAD;
-                            } else {
-                                gameState.setOccupied(i, j);
-                                addRectangle(r);
-                                if (Intersector.isPointInPolygon(vert2, newPosition)) {
-                                    newHead = r;
-                                }
-                            }
-                        }
+    public List<GridPoint2> moveTo(float newX, float newY, int thickness) {
+        List<GridPoint2> occupied = new ArrayList<GridPoint2>(16);
+        if (state == STATE_VISIBLE && (x!=newX || y!=newY)) { //ne želimo okupirati polja ako je linija INVISIBLE
+            int edgeToHead = (thickness - 1) / 2;
+            for(int i=-edgeToHead; i<=edgeToHead; i++) {
+                int ix0 = (int)Math.round(x + i*Math.cos(direction + Math.PI/2)),
+                    ix1 = (int)Math.round(newX + i*Math.cos(direction + Math.PI/2)),
+                    iy0 = (int)Math.round(y + i*Math.sin(direction + Math.PI/2)),
+                    iy1 = (int)Math.round(newY + i*Math.sin(direction + Math.PI/2));
+                Set<GridPoint2> line = bresenham(ix0, iy0, ix1, iy1);
+                line.remove(new GridPoint2(ix0, iy0));
+                occupied.addAll(line);
+                for (GridPoint2 p : line) {
+                    if(p.x < 0 || p.y < 0 || p.x >= gameState.getX() || p.y >= gameState.getY()) {
+                        state = STATE_DEAD;
+                    } else if (!gameState.isOccupied(p) || i!=0) {
+                        addRectangle(p);
+                        if(i == 0) gameState.setOccupied(p);
+                    } else {
+                        state = STATE_DEAD;
                     }
                 }
             }
-
-            x =  newPosition.x;
-            y =  newPosition.y;
-        } catch (ArrayIndexOutOfBoundsException e) {
-            state = STATE_DEAD;
         }
-        head = newHead;
+        if(state != STATE_DEAD) {
+            x = newX;
+            y = newY;
+        }
+        return occupied;
+    }
+
+    private Set<GridPoint2> bresenham(int x0, int y0, int x1, int y1) {
+        Set<GridPoint2> result = new HashSet<GridPoint2>((int) speed * 2);
+        int dx = Math.abs(x1 - x0), sx = x0 < x1 ? 1 : -1;
+        int dy = Math.abs(y1 - y0), sy = y0 < y1 ? 1 : -1;
+        int err = (dx > dy ? dx : -dy) / 2, e2;
+
+        for (; ; ) {
+            result.add(new GridPoint2(x0, y0));
+            if (x0 == x1 && y0 == y1) break;
+            e2 = err;
+            if (e2 > -dx) {
+                err -= dy;
+                x0 += sx;
+            }
+            if (e2 < dy) {
+                err += dx;
+                y0 += sy;
+            }
+        }
+        return result;
     }
 
     @Override
     public void setDirection(double direction) {
         this.direction = direction;
+    }
+
+
+    private int rgb565;
+    public int rgb565() {
+        if(rgb565 == 0) {
+            int r = (int) color.r >>> 3;
+            int g = (int) color.g >>> 2;
+            int b = (int) color.b >>> 3;
+            rgb565 = (r << 11) | (g << 5) | b;
+        }
+        return rgb565;
     }
 }
