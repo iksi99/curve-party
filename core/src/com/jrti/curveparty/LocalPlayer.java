@@ -27,6 +27,7 @@ public class LocalPlayer implements Player {
     private float speed     = 1;
     private double direction;
     private int thickness;
+    private int id;
 
     private List<GridPoint2> renderList = new ArrayList<GridPoint2>(1024);
 
@@ -35,6 +36,7 @@ public class LocalPlayer implements Player {
         this.y = y;
         this.direction = direction;
         this.color = COLORS[id];
+        this.id = id;
         thickness = DEFAULT_THICKNESS;
 
         this.gameState = gameState;
@@ -79,7 +81,8 @@ public class LocalPlayer implements Player {
     public List<GridPoint2> getRenderList() { return renderList; }
 
     public void addRectangle(GridPoint2 point) {
-        renderList.add(point);
+        if(!MainMenu.USING_PIXMAP)
+            renderList.add(point);
     }
 
     public List<GridPoint2> move() {
@@ -153,15 +156,8 @@ public class LocalPlayer implements Player {
         this.direction = direction;
     }
 
-
-    private int rgb565;
-    public int rgb565() {
-        if(rgb565 == 0) {
-            int r = (int) color.r >>> 3;
-            int g = (int) color.g >>> 2;
-            int b = (int) color.b >>> 3;
-            rgb565 = (r << 11) | (g << 5) | b;
-        }
-        return rgb565;
+    @Override
+    public int getId() {
+        return id;
     }
 }

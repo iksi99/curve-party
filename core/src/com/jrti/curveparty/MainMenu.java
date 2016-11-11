@@ -22,6 +22,8 @@ import com.badlogic.gdx.utils.viewport.Viewport;
  */
 
 public class MainMenu implements Screen {
+    public static final boolean USING_PIXMAP = true;
+
     public static final int PAD_LOGO = 0, PAD_BUTTONS = 15;
 
     private final CurveParty game;
@@ -88,7 +90,10 @@ public class MainMenu implements Screen {
         singleplayer.addListener(new ClickListener(){
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                game.setScreen(new GameScreen(game));
+                if(USING_PIXMAP)
+                    game.setScreen(new PixmapScreen(game));
+                else
+                    game.setScreen(new GameScreen(game));
             }
         });
         exitButton.addListener(new ClickListener(){

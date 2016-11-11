@@ -3,6 +3,7 @@ package com.jrti.curveparty;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
@@ -12,8 +13,7 @@ import java.util.List;
 import java.util.Random;
 
 /**
- * Koristi Pixmap za iscrtavanje kriva na ekran, u nadi da će biti brže nego kreiranje stotina kvadrata koristeći
- * ShapeRenderer. Trenutno ne radi (ništa se ne iscrtava). Potrebno je ručno skalirati piksele.
+ * Koristi Pixmap za iscrtavanje kriva na ekran, bez problema dostiže konstantnu brzinu od 60fps
  * Created by luka on 10.11.16..
  */
 
@@ -38,6 +38,8 @@ public class PixmapScreen implements Screen {
         Random rnd = new Random();
         localPlayer = gameState.addLocalPlayer(0, rnd.nextInt(GRID_X - 100) + 50, rnd.nextInt(GRID_Y - 70) + 35,
                                                rnd.nextFloat() * 6.283185f);
+        map.setColor(Color.DARK_GRAY);
+        map.fill();
 
         Gdx.input.setInputProcessor(new InputAdapter() {
             @Override
@@ -64,7 +66,6 @@ public class PixmapScreen implements Screen {
 
     @Override
     public void show() {
-        texture.bind();
     }
 
     @Override
@@ -74,13 +75,18 @@ public class PixmapScreen implements Screen {
 
         for (Player p : gameState.getPlayerList()) {
             if (p.getState() != Player.STATE_DEAD) {
+                map.setColor(p.getColor());
                 List<GridPoint2> occupied = p.move();
                 for(GridPoint2 gp : occupied) {
-                    map.drawPixel(gp.x, gp.y, 0xF800);
+                    map.drawPixel(gp.x, gp.y);
                 }
             }
         }
-        texture.draw(map, 0, 0);//todo rucno skalirati
+        game.spriteBatch.begin();
+        texture.dispose();
+        texture = new Texture(map);
+        game.spriteBatch.draw(texture, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        game.spriteBatch.end();
     }
 
     @Override
