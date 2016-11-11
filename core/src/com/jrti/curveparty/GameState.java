@@ -4,6 +4,7 @@ import com.badlogic.gdx.math.GridPoint2;
 import com.badlogic.gdx.math.Rectangle;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -60,6 +61,10 @@ public class GameState {
 
     public void setOccupied(GridPoint2 p) {
         occupiedFields.add(p);
+    }
+
+    public void setOccupied(Collection<GridPoint2> points) {
+        occupiedFields.addAll(points);
     }
 
     public LocalPlayer addLocalPlayer(int id, int xPos, int yPos, float direction) {
