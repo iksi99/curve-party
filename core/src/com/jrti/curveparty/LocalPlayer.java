@@ -81,7 +81,8 @@ public class LocalPlayer implements Player {
     public List<GridPoint2> getRenderList() { return renderList; }
 
     public void addRectangle(GridPoint2 point) {
-        renderList.add(point);
+        if(!MainMenu.USING_PIXMAP)
+            renderList.add(point);
     }
 
     public List<GridPoint2> move() {
