@@ -39,4 +39,6 @@ public interface Player {
     List<GridPoint2> moveTo(float x, float y, int thickness);
 
     void setDirection(double direction);
+
+    int getId();
 }

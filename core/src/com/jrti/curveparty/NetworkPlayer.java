@@ -41,6 +41,7 @@ public class NetworkPlayer implements Player {
         this.y = y;
         this.color = COLORS[id];
         this.direction = direction;
+        this.id = id;
 
         this.gameState = gameState;
 
@@ -141,5 +142,10 @@ public class NetworkPlayer implements Player {
     @Override
     public void setDirection(double direction) {
         this.direction = direction;
+    }
+
+    @Override
+    public int getId() {
+        return id;
     }
 }
