@@ -1,11 +1,14 @@
 package com.jrti.curveparty;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.GridPoint2;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 /**
@@ -29,6 +32,8 @@ public class LocalPlayer implements Player {
     private int thickness;
     private int id;
 
+    private List<List<GridPoint2>> recentlyOccupied = new LinkedList<List<GridPoint2>>();
+    private static final int RECENT = 2;
     private List<GridPoint2> renderList = new ArrayList<GridPoint2>(1024);
 
     public LocalPlayer(int x, int y, float direction, int id, GameState gameState) {
@@ -102,23 +107,30 @@ public class LocalPlayer implements Player {
         List<GridPoint2> occupied = new ArrayList<GridPoint2>(16);
         if (state == STATE_VISIBLE && (x!=newX || y!=newY)) { //ne želimo okupirati polja ako je linija INVISIBLE
             int edgeToHead = (thickness - 1) / 2;
+            boolean collision = false;
             for(int i=-edgeToHead; i<=edgeToHead; i++) {
                 int ix0 = (int)Math.round(x + i*Math.cos(direction + Math.PI/2)),
-                    ix1 = (int)Math.round(newX + i*Math.cos(direction + Math.PI/2)),
-                    iy0 = (int)Math.round(y + i*Math.sin(direction + Math.PI/2)),
-                    iy1 = (int)Math.round(newY + i*Math.sin(direction + Math.PI/2));
+                        ix1 = (int)Math.round(newX + i*Math.cos(direction + Math.PI/2)),
+                        iy0 = (int)Math.round(y + i*Math.sin(direction + Math.PI/2)),
+                        iy1 = (int)Math.round(newY + i*Math.sin(direction + Math.PI/2));
                 Set<GridPoint2> line = bresenham(ix0, iy0, ix1, iy1);
                 line.remove(new GridPoint2(ix0, iy0));
                 occupied.addAll(line);
                 for (GridPoint2 p : line) {
-                    if(p.x < 0 || p.y < 0 || p.x >= gameState.getX() || p.y >= gameState.getY()) {
+                    if(p.x < 0 || p.y < 0 || p.x >= gameState.getX() || p.y >= gameState.getY()
+                       || (!isRecentlyOccupied(p) && gameState.isOccupied(p))) {
                         state = STATE_DEAD;
-                    } else if (!gameState.isOccupied(p) || i!=0) {
-                        addRectangle(p);
-                        if(i == 0) gameState.setOccupied(p);
+                        collision = true;
                     } else {
-                        state = STATE_DEAD;
+                        addRectangle(p);
                     }
+                }
+            }
+            if(!collision) {
+                gameState.setOccupied(occupied);
+                recentlyOccupied.add(occupied);
+                if(recentlyOccupied.size() > RECENT) {
+                    recentlyOccupied.remove(0);
                 }
             }
         }
@@ -129,8 +141,43 @@ public class LocalPlayer implements Player {
         return occupied;
     }
 
+    private boolean isRecentlyOccupied(GridPoint2 p) {
+        for(List<GridPoint2> l : recentlyOccupied) {
+            for(GridPoint2 gp : l)
+                if(gp.equals(p)) return true;
+        }
+        return false;
+    }
+
+    private Set<GridPoint2> drawOffsetLine(int i, float newX, float newY) {
+        int ix0 = (int)Math.round(x + i*Math.cos(direction + Math.PI/2)),
+                ix1 = (int)Math.round(newX + i*Math.cos(direction + Math.PI/2)),
+                iy0 = (int)Math.round(y + i*Math.sin(direction + Math.PI/2)),
+                iy1 = (int)Math.round(newY + i*Math.sin(direction + Math.PI/2));
+        if(i>0) Gdx.app.log("LocalPlayer", String.format(Locale.ENGLISH, "+{%d,%d}->{%d,%d}", ix0, iy0, ix1, iy1));
+        else    Gdx.app.log("LocalPlayer", String.format(Locale.ENGLISH, "-{%d,%d}->{%d,%d}", ix0, iy0, ix1, iy1));
+        Set<GridPoint2> line = bresenham(ix0, iy0, ix1, iy1);
+        line.remove(new GridPoint2(ix0, iy0));
+        Gdx.app.log("LocalPlayer", "occupied " + line);
+        for (GridPoint2 p : line) {
+            if(p.x < 0 || p.y < 0 || p.x >= gameState.getX() || p.y >= gameState.getY()
+               || (!recentlyOccupied.contains(p) && gameState.isOccupied(p))) {
+                state = STATE_DEAD;
+                Gdx.app.log("LocalPlayer", "died at (" + p.x + "," + p.y + ")");
+                line = null; break;
+            } else {
+                addRectangle(p);
+            }
+        }
+        return line;
+    }
+
     private Set<GridPoint2> bresenham(int x0, int y0, int x1, int y1) {
         Set<GridPoint2> result = new HashSet<GridPoint2>((int) speed * 2);
+        if(Math.abs(x1-x0) <= 1 && Math.abs(y1-y0) <= 1) {
+            result.add(new GridPoint2(x1, y1));
+            return result;
+        }
         int dx = Math.abs(x1 - x0), sx = x0 < x1 ? 1 : -1;
         int dy = Math.abs(y1 - y0), sy = y0 < y1 ? 1 : -1;
         int err = (dx > dy ? dx : -dy) / 2, e2;

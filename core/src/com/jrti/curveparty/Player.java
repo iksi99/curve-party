@@ -20,7 +20,7 @@ public interface Player {
     int STATE_VISIBLE = 0, STATE_INVISIBLE = 1, STATE_DEAD = 2;
 
     double TURNING_ANGLE = 0.05;
-    int DEFAULT_THICKNESS = 3;
+    int DEFAULT_THICKNESS = 5;
 
     float getX();
 
