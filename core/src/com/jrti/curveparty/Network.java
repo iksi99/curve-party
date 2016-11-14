@@ -105,7 +105,7 @@ public class Network {
          * @param x     nova x koordinata igrača (pretpostaviti da se kretao pravolinijski od prethodne)
          * @param y     nova y koordinata igrača (pretpostaviti da se kretao pravolinijski od prethodne)
          */
-        void onPlayerAdvanced(int id, int state, int x, int y, double thickness);
+        void onPlayerAdvanced(int id, int state, int x, int y, float thickness);
 
         /**
          * Poziva se kada treba dodati powerup na ekran. Veličina je konstantna. Bilo bi lepo da ikonica bude krug,
@@ -274,7 +274,7 @@ public class Network {
                             } else {
                                 x=y=-1;
                             }
-                            final double thickness = playerInfo.getDouble(JSON_PI_THICKNESS);
+                            final float thickness = playerInfo.getFloat(JSON_PI_THICKNESS);
                             //final double dir = playerInfo.getInt(JSON_PI_DIRECTION),
                             //        spd = playerInfo.getInt(JSON_PI_SPEED);
                             Gdx.app.postRunnable(new Runnable() {

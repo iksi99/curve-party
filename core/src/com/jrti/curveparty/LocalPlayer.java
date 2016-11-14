@@ -5,7 +5,6 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.GridPoint2;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
@@ -90,6 +89,7 @@ public class LocalPlayer implements Player {
             renderList.add(point);
     }
 
+    @Override
     public List<GridPoint2> move() {
         float x1 = (float) (x + speed * Math.cos(direction));
         float y1 = (float) (y + speed * Math.sin(direction));
@@ -103,17 +103,17 @@ public class LocalPlayer implements Player {
     }
 
     @Override
-    public List<GridPoint2> moveTo(float newX, float newY, int thickness) {
+    public List<GridPoint2> moveTo(float newX, float newY, float thickness) {
         List<GridPoint2> occupied = new ArrayList<GridPoint2>(16);
         if (state == STATE_VISIBLE && (x!=newX || y!=newY)) { //ne želimo okupirati polja ako je linija INVISIBLE
-            int edgeToHead = (thickness - 1) / 2;
+            int edgeToHead = Math.round((thickness - 1) / 2);
             boolean collision = false;
             for(int i=-edgeToHead; i<=edgeToHead; i++) {
                 int ix0 = (int)Math.round(x + i*Math.cos(direction + Math.PI/2)),
                         ix1 = (int)Math.round(newX + i*Math.cos(direction + Math.PI/2)),
                         iy0 = (int)Math.round(y + i*Math.sin(direction + Math.PI/2)),
                         iy1 = (int)Math.round(newY + i*Math.sin(direction + Math.PI/2));
-                Set<GridPoint2> line = bresenham(ix0, iy0, ix1, iy1);
+                Set<GridPoint2> line = Utils.bresenham(ix0, iy0, ix1, iy1);
                 line.remove(new GridPoint2(ix0, iy0));
                 occupied.addAll(line);
                 for (GridPoint2 p : line) {
@@ -156,7 +156,7 @@ public class LocalPlayer implements Player {
                 iy1 = (int)Math.round(newY + i*Math.sin(direction + Math.PI/2));
         if(i>0) Gdx.app.log("LocalPlayer", String.format(Locale.ENGLISH, "+{%d,%d}->{%d,%d}", ix0, iy0, ix1, iy1));
         else    Gdx.app.log("LocalPlayer", String.format(Locale.ENGLISH, "-{%d,%d}->{%d,%d}", ix0, iy0, ix1, iy1));
-        Set<GridPoint2> line = bresenham(ix0, iy0, ix1, iy1);
+        Set<GridPoint2> line = Utils.bresenham(ix0, iy0, ix1, iy1);
         line.remove(new GridPoint2(ix0, iy0));
         Gdx.app.log("LocalPlayer", "occupied " + line);
         for (GridPoint2 p : line) {
@@ -170,37 +170,6 @@ public class LocalPlayer implements Player {
             }
         }
         return line;
-    }
-
-    private Set<GridPoint2> bresenham(int x0, int y0, int x1, int y1) {
-        Set<GridPoint2> result = new HashSet<GridPoint2>((int) speed * 2);
-        if(Math.abs(x1-x0) <= 1 && Math.abs(y1-y0) <= 1) {
-            result.add(new GridPoint2(x1, y1));
-            return result;
-        }
-        int dx = Math.abs(x1 - x0), sx = x0 < x1 ? 1 : -1;
-        int dy = Math.abs(y1 - y0), sy = y0 < y1 ? 1 : -1;
-        int err = (dx > dy ? dx : -dy) / 2, e2;
-
-        for (; ; ) {
-            result.add(new GridPoint2(x0, y0));
-            if (x0 == x1 && y0 == y1) break;
-            e2 = err;
-            if (e2 > -dx) {
-                err -= dy;
-                x0 += sx;
-            }
-            if (e2 < dy) {
-                err += dx;
-                y0 += sy;
-            }
-        }
-        return result;
-    }
-
-    @Override
-    public void setDirection(double direction) {
-        this.direction = direction;
     }
 
     @Override

@@ -1,5 +1,7 @@
 package com.jrti.curveparty;
 
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.math.GridPoint2;
 import com.badlogic.gdx.math.Rectangle;
 
@@ -7,13 +9,20 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by cactoss on 2.11.2016..
  */
 
 public class GameState {
+    public static final boolean USE_TOUCH_COMMANDS = false;
+    public static final int TIMESTEP_DURATION = 25;
+    public static final double TILT_THRESHOLD = 0.5;
 
     private int x;
     private int y;
@@ -21,7 +30,7 @@ public class GameState {
 
 
     private Rectangle[][]   gameMatrix;
-    private Set<GridPoint2> occupiedFields;
+    private Set<GridPoint2> occupiedFields; //could (should?) use boolean matrix
     private List<Player> playerList = new ArrayList<Player>();
 
     public GameState(int x, int y, int numOfPlayers) {
@@ -38,14 +47,59 @@ public class GameState {
         }
     }
 
+    public void startGame(final PixmapScreen screen) {
+        Random rnd = new Random();
+        final LocalPlayer localPlayer = addLocalPlayer(0, rnd.nextInt(x - 100) + 50, rnd.nextInt(y - 70) + 35,
+                                               rnd.nextFloat() * 6.283185f);
+        if(USE_TOUCH_COMMANDS) setTouchControls(localPlayer);
+        ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor();
+        exec.scheduleAtFixedRate(new Runnable() {
+            private int rot = Gdx.input.getRotation();
+            @Override
+            public void run() {
+                if(localPlayer.getState() != Player.STATE_DEAD) {
+                    if (!USE_TOUCH_COMMANDS) {
+                        double tilt = Gdx.input.getAccelerometerY();
+                        Gdx.app.log("GameState", "tilt: " + tilt + ", rot: " + rot);
+                        if (tilt > TILT_THRESHOLD) localPlayer.turn(Player.DIRECTION_RIGHT);
+                        else if (tilt < -TILT_THRESHOLD) localPlayer.turn(Player.DIRECTION_LEFT);
+                    }
+                    List<GridPoint2> moved = localPlayer.move();
+                    if(localPlayer.getState() != Player.STATE_INVISIBLE)
+                        screen.drawPoints(moved, localPlayer.getColor());
+                }
+            }
+        }, 5, TIMESTEP_DURATION, TimeUnit.MILLISECONDS);
+    }
+
+    private void setTouchControls(final LocalPlayer player) {
+        Gdx.input.setInputProcessor(new InputAdapter() {
+            final int width = Gdx.graphics.getWidth();
+            @Override
+            public boolean touchDown(int x, int y, int pointer, int button) {
+                if (x <= width / 2) {
+                    player.setTurningLeft(true);
+                } else {
+                    player.setTurningRight(true);
+                }
+                return true;
+            }
+
+            @Override
+            public boolean touchUp(int screenX, int screenY, int pointer, int button) {
+                if (screenX <= width / 2) {
+                    player.setTurningLeft(false);
+                } else {
+                    player.setTurningRight(false);
+                }
+                return true;
+            }
+        });
+    }
+
     public List<Player> getPlayerList() {
         return playerList;
     }
-
-    public Rectangle[][] getGameMatrix() {
-        return gameMatrix;
-    }
-
 
     public int getX() {
         return x;
