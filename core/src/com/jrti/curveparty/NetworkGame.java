@@ -40,10 +40,10 @@ public class NetworkGame {
                 if(doInitPlayers) {
                     players[id] = new NetworkPlayer(id, x, y, NetworkGame.this);
                     doInitPlayers = false;
-                } else {
+                } else if(state != Player.STATE_DEAD) {
                     Player           p        = players[id];
                     List<GridPoint2> occupied = p.moveTo(x, y, thickness);
-                    screen.drawPoints(occupied, p.getColor());
+                    if(state!=Player.STATE_INVISIBLE) screen.drawPoints(occupied, p.getColor());
                 }
             }
 
