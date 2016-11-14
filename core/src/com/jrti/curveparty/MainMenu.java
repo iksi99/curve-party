@@ -91,9 +91,15 @@ public class MainMenu implements Screen {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 if(USING_PIXMAP)
-                    game.setScreen(new PixmapScreen(game));
+                    game.setScreen(new PixmapScreen(game).startSingleplayer());
                 else
                     game.setScreen(new GameScreen(game));
+            }
+        });
+        multiplayer.addListener(new ClickListener(){
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                game.setScreen(new PixmapScreen(game).startMultiplayer());
             }
         });
         exitButton.addListener(new ClickListener(){

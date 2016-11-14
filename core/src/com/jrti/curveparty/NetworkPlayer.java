@@ -2,11 +2,6 @@ package com.jrti.curveparty;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.GridPoint2;
-import com.badlogic.gdx.math.Intersector;
-import com.badlogic.gdx.math.Polygon;
-import com.badlogic.gdx.math.Rectangle;
-import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.utils.Array;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,33 +16,22 @@ public class NetworkPlayer implements Player {
     private float     x;
     private float     y;
     private Color     color;
-    private Rectangle head;
 
     private int     state          = STATE_VISIBLE;
-    private boolean isTurningLeft  = false;
-    private boolean isTurningRight = false;
 
-    private GameState gameState;
+    private NetworkGame gameState;
 
-    private float speed     = 2f;
-    private double direction;
-    private float turnAngle = 0.05f;
+    private double direction=4; //invalid value
 
-    private List<Rectangle> renderList = new ArrayList<Rectangle>();
 
-    public NetworkPlayer(float x, float y, int id, double direction, GameState gameState) {
+    public NetworkPlayer(int id, float x, float y, NetworkGame gameState) {
         this.id = id;
         this.x = x;
         this.y = y;
         this.color = COLORS[id];
-        this.direction = direction;
         this.id = id;
 
         this.gameState = gameState;
-
-        this.head = gameState.getGameMatrix()[(int) x][(int) y];
-        renderList.add(head);
-        gameState.setOccupied(new GridPoint2((int)x, (int)y));
     }
 
     public float getX() {
@@ -70,78 +54,16 @@ public class NetworkPlayer implements Player {
         return state;
     }
 
-    public List<GridPoint2> getRenderList() { return null;}//return renderList; }
-
-    public void occupy(Rectangle rectangle) {
-        renderList.add(rectangle);
-    }
+    public List<GridPoint2> getRenderList() { return new ArrayList<GridPoint2>(0); }//return renderList; }
 
     public List<GridPoint2> move() {
-        moveTo((int) (x + speed * Math.cos(direction)), (int) (y + speed * Math.sin(direction)), 1);
-        return null;
+        throw new UnsupportedOperationException("There's no move() for network players");
     }
 
     @Override
-    public List<GridPoint2> moveTo(float newX, float newY, int thickness) {
-        Rectangle newHead = head;
-
-        Vector2 currentPosition = new Vector2(x, y);
-        Vector2 newPosition     = new Vector2(newX, newY);
-
-        try {
-            if (state == STATE_VISIBLE) { //ne želimo okupirati polja ako je linija INVISIBLE
-                for (int i = (int) Math.min(currentPosition.x, newPosition.x);
-                     i <= Math.max(currentPosition.x, newPosition.x);
-                     i++) {
-                    for (int j = (int) Math.min(currentPosition.y, newPosition.y);
-                         j <= Math.max(currentPosition.y, newPosition.y);
-                         j++) {
-                        Rectangle r = gameState.getGameMatrix()[i][j];
-
-                        float[] vert = {
-                                r.x, r.y,
-                                r.x, r.y + 1,
-                                r.x + 1, r.y + 1,
-                                r.x + 1, r.y
-                        };
-
-                        Array<Vector2> vert2 = new Array<Vector2>();
-                        vert2.add(new Vector2(r.x, r.y));
-                        vert2.add(new Vector2(r.x, r.y + 1));
-                        vert2.add(new Vector2(r.x + 1, r.y + 1));
-                        vert2.add(new Vector2(r.x + 1, r.y));
-
-                        Polygon pr = new Polygon(vert);
-
-                        if (Intersector.intersectLinePolygon(currentPosition, newPosition, pr)) {
-                            if (gameState.isOccupied(new GridPoint2(i, j)) && !head.equals(r)) {
-                                state = STATE_DEAD;
-                            } else {
-                                gameState.setOccupied(new GridPoint2(i, j));
-                                occupy(r);
-                                if (Intersector.isPointInPolygon(vert2, newPosition)) {
-                                    newHead = r;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            x = (int) newPosition.x;
-            y = (int) newPosition.y;
-        } catch (ArrayIndexOutOfBoundsException e) {
-            state = STATE_DEAD;
-        }
-
-
-        head = newHead;
+    public List<GridPoint2> moveTo(float newX, float newY, float thickness) {
+        //todo implement direction-less moving (use Utils#bresenham, see LocalPlayer#moveTo)
         return null;
-    }
-
-    @Override
-    public void setDirection(double direction) {
-        this.direction = direction;
     }
 
     @Override

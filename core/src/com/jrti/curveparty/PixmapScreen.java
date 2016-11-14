@@ -1,7 +1,6 @@
 package com.jrti.curveparty;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
@@ -10,7 +9,6 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.GridPoint2;
 
 import java.util.List;
-import java.util.Random;
 
 /**
  * Koristi Pixmap za iscrtavanje kriva na ekran, bez problema dostiže konstantnu brzinu od 60fps
@@ -18,50 +16,49 @@ import java.util.Random;
  */
 
 public class PixmapScreen implements Screen {
-    public static final int GRID_X = 800;
-    public static final int GRID_Y = 450;
 
-    private final CurveParty         game;
-    private final Pixmap map = new Pixmap(GRID_X, GRID_Y, Pixmap.Format.RGB565);
+    public static final int            GRID_X   = 800;
+    public static final int            GRID_Y   = 450;
+    private static final Pixmap.Format FORMAT   = Pixmap.Format.RGB565; //whatever
+    private static final Color         BG_COLOR = Color.DARK_GRAY;
 
-    private LocalPlayer localPlayer;
-    //u redu je da znamo koji je "naš" player i deklarišemo kao Local kad ga već izdvajamo
+    private final CurveParty game;
+    private Pixmap map;
 
-    private GameState gameState = new GameState(GRID_X, GRID_Y, 1);
-    private Texture texture = new Texture(map);
+    private Texture texture;
 
     public PixmapScreen(final CurveParty game) {
         this.game = game;
 
-        final int width = Gdx.graphics.getWidth();
-
-        Random rnd = new Random();
-        localPlayer = gameState.addLocalPlayer(0, rnd.nextInt(GRID_X - 100) + 50, rnd.nextInt(GRID_Y - 70) + 35,
-                                               rnd.nextFloat() * 6.283185f);
-        map.setColor(Color.DARK_GRAY);
+        map = new Pixmap(GRID_X, GRID_Y, FORMAT);
+        map.setColor(BG_COLOR);
         map.fill();
+        texture = new Texture(map);
+    }
 
-        Gdx.input.setInputProcessor(new InputAdapter() {
-            @Override
-            public boolean touchDown(int x, int y, int pointer, int button) {
-                if (x <= width / 2) {
-                    localPlayer.setTurningLeft(true);
-                } else {
-                    localPlayer.setTurningRight(true);
-                }
-                return true;
-            }
+    public PixmapScreen startSingleplayer() {
+        GameState gameState = new GameState(GRID_X, GRID_Y, 1);
+        gameState.startGame(this);
+        return this;
+    }
 
-            @Override
-            public boolean touchUp(int screenX, int screenY, int pointer, int button) {
-                if (screenX <= width / 2) {
-                    localPlayer.setTurningLeft(false);
-                } else {
-                    localPlayer.setTurningRight(false);
-                }
-                return true;
-            }
-        });
+    public PixmapScreen startMultiplayer() {
+        //todo
+        //videti šta i gde s matchmakingom, šta prikazivati korisniku dok se traži igra (v. NetworkGame)
+        return this;
+    }
+
+    /**
+     * this will reset current Pixmap if passed dimensions are different than current
+     * @param x x dimension of the grid (horizontal)
+     * @param y y dimenzion of the grid (vertical)
+     */
+    public void setPixmapSize(int x, int y) {
+        if(x!=GRID_X || y !=GRID_Y) {
+            map = new Pixmap(x, y, FORMAT);
+            map.setColor(BG_COLOR);
+            map.fill();
+        }
     }
 
     @Override
@@ -73,15 +70,6 @@ public class PixmapScreen implements Screen {
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-        for (Player p : gameState.getPlayerList()) {
-            if (p.getState() != Player.STATE_DEAD) {
-                map.setColor(p.getColor());
-                List<GridPoint2> occupied = p.move();
-                for(GridPoint2 gp : occupied) {
-                    map.drawPixel(gp.x, gp.y);
-                }
-            }
-        }
         game.spriteBatch.begin();
         texture.dispose();
         texture = new Texture(map);
@@ -112,5 +100,12 @@ public class PixmapScreen implements Screen {
     @Override
     public void dispose() {
         map.dispose();
+    }
+
+    public void drawPoints(List<GridPoint2> points, Color color) {
+        map.setColor(color);
+        for(GridPoint2 gp : points) {
+            map.drawPixel(gp.x, gp.y);
+        }
     }
 }
