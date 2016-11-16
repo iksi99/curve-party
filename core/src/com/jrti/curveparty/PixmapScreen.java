@@ -6,6 +6,7 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.math.GridPoint2;
 
 import java.util.List;
@@ -21,9 +22,19 @@ public class PixmapScreen implements Screen {
     public static final int            GRID_Y   = 450;
     private static final Pixmap.Format FORMAT   = Pixmap.Format.RGB565; //whatever
     private static final Color         BG_COLOR = Color.DARK_GRAY;
+    private static final BitmapFont FONT = new BitmapFont();
 
     private final CurveParty game;
     private Pixmap map;
+
+    static class Score {
+        Color color; int score;
+        Score(Color color, int score) {
+            this.color = color;
+            this.score = score;
+        }
+    }
+    private Score[] scores;
 
     private Texture texture;
 
@@ -73,7 +84,14 @@ public class PixmapScreen implements Screen {
         game.spriteBatch.begin();
         texture.dispose();
         texture = new Texture(map);
-        game.spriteBatch.draw(texture, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        int w = Gdx.graphics.getWidth(), h = Gdx.graphics.getHeight();
+        game.spriteBatch.draw(texture, 0, 0, w, h);
+        if(scores != null) {
+            for(int i=0; i<scores.length; i++) {
+                FONT.setColor(scores[i].color);
+                FONT.draw(game.spriteBatch, String.valueOf(scores[i].score), 0.95f*w-i*15, 5); //todo proper
+            }
+        }
         game.spriteBatch.end();
     }
 
@@ -107,5 +125,14 @@ public class PixmapScreen implements Screen {
         for(GridPoint2 gp : points) {
             map.drawPixel(gp.x, gp.y);
         }
+    }
+
+    public void clearScreen() {
+        map.setColor(BG_COLOR);
+        map.fill();
+    }
+
+    public void drawScores(Score[] scores) {
+        this.scores = scores;
     }
 }

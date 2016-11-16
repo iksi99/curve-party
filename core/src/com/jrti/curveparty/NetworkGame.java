@@ -27,7 +27,7 @@ public class NetworkGame {
             boolean doInitPlayers = false;
 
             @Override
-            public void onGameStarted(int numOfPlayers, int x, int y, int delay, int interval) {
+            public void onGameStarted(int numOfPlayers, int x, int y, int rounds, int delay, int interval) {
                 players = new NetworkPlayer[numOfPlayers];
                 gridX = x;
                 gridY = y;
@@ -36,15 +36,25 @@ public class NetworkGame {
             }
 
             @Override
+            public void onRoundStarted() {
+                screen.clearScreen();
+            }
+
+            @Override
+            public void initPlayers(NetworkPlayer[] players) {
+                NetworkGame.this.players = players;
+            }
+
+            @Override
+            public void setMyId(int id) {
+                //todo
+            }
+
+            @Override
             public void onPlayerAdvanced(int id, int state, int x, int y, float thickness) {
-                if(doInitPlayers) {
-                    players[id] = new NetworkPlayer(id, x, y, NetworkGame.this);
-                    doInitPlayers = false;
-                } else if(state != Player.STATE_DEAD) {
-                    Player           p        = players[id];
-                    List<GridPoint2> occupied = p.moveTo(x, y, thickness);
-                    if(state!=Player.STATE_INVISIBLE) screen.drawPoints(occupied, p.getColor());
-                }
+                Player           p        = players[id];
+                List<GridPoint2> occupied = p.moveTo(x, y, thickness);
+                if(state!=Player.STATE_INVISIBLE) screen.drawPoints(occupied, p.getColor());
             }
 
             @Override
@@ -62,7 +72,17 @@ public class NetworkGame {
 
             @Override
             public void onGameFinished() {
-                //todo display result, victory screen, whatever
+                //todo display victory screen or smth
+            }
+
+            @Override
+            public void onRoundFinished(int[] scores) {
+                PixmapScreen.Score[] scs = new PixmapScreen.Score[scores.length];
+                for(int i=0; i<scores.length; i++) {
+                    players[i].setScore(scores[i]);
+                    scs[i] = new PixmapScreen.Score(players[i].getColor(), scores[i]);
+                }
+                screen.drawScores(scs);
             }
 
             @Override
