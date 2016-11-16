@@ -15,23 +15,26 @@ public class NetworkPlayer implements Player {
     private int       id;
     private float     x;
     private float     y;
+    private int       score;
     private Color     color;
 
     private int     state          = STATE_VISIBLE;
 
-    private NetworkGame gameState;
 
     private double direction=4; //invalid value
 
 
-    public NetworkPlayer(int id, float x, float y, NetworkGame gameState) {
+    public NetworkPlayer(int id, float x, float y) {
         this.id = id;
         this.x = x;
         this.y = y;
         this.color = COLORS[id];
         this.id = id;
+    }
 
-        this.gameState = gameState;
+    public void resetTo(int x, int y) {
+        this.x = x;
+        this.y = y;
     }
 
     public float getX() {
@@ -69,5 +72,12 @@ public class NetworkPlayer implements Player {
     @Override
     public int getId() {
         return id;
+    }
+
+    public int getScore() {
+        return score;
+    }
+    public void setScore(int score) {
+        this.score = score;
     }
 }

@@ -31,12 +31,14 @@ public class Network {
     private static final String JSON_GI_Y                 = "y";
     private static final String JSON_GI_TIMESTEP_DELAY    = "delay";
     private static final String JSON_GI_TIMESTEP_INTERVAL = "interval";
+    private static final String JSON_GI_ROUNDS    = "rounds";
 
     private static final String JSON_PI_ID        = "id";
     private static final String JSON_PI_STATE     = "state";
     private static final String JSON_PI_X         = "x";
     private static final String JSON_PI_Y         = "y";
     private static final String JSON_PI_THICKNESS = "thk";
+    private static final String JSON_PI_SCORE     = "score";
 //    private static final String JSON_PI_DIRECTION = "dir";
 //    private static final String JSON_PI_SPEED     = "speed";
 
@@ -44,6 +46,9 @@ public class Network {
     private static final String JSON_PU_Y          = "y";
     private static final String JSON_PU_TYPE       = "type";
     private static final String JSON_PU_TIME_ALIVE = "ttl";
+
+    private static final String JSON_LABEL_ROUND_START = "init";
+    private static final String JSON_LABEL_ROUND_END = "end";
 
     private static final ExecutorService executor = Executors.newSingleThreadExecutor();
 
@@ -93,7 +98,26 @@ public class Network {
          * @param delay        inicijalno zakašnjenje (do drugog koraka), u milisekundama
          * @param interval     interval između svakog narednog koraka, u milisekundama
          */
-        void onGameStarted(int numOfPlayers, int x, int y, int delay, int interval);
+        void onGameStarted(int numOfPlayers, int x, int y, int rounds, int delay, int interval);
+
+        /**
+         * Poziva se da naznači početak nove runde. Pozivu ove metode sledi poziv {@link #initPlayers(NetworkPlayer[])}.
+         * Ova metoda se poziva i na početku igre, nakon {@link #onGameStarted(int, int, int, int, int, int)}
+         */
+        void onRoundStarted();
+
+        /**
+         * Poziva se kada su dostupni podaci o igračima, početne pozicije, smer kretanja i sl. Redosled igrača
+         * u nizu odgovara id-ovima. Svi igrači su inicijalizovani i reference na njih se ne menjaju kroz igru.
+         * @param players igrači koji se nalaze u trenutnoj igri
+         */
+        void initPlayers(NetworkPlayer[] players);
+
+        /**
+         * Signalizuje da treba postaviti id igrača koji igra na telefonu, poziva se na samom početku
+         * @param id id treuntnog igrača
+         */
+        void setMyId(int id);
 
         /**
          * Poziva se u regularnim intervalima (u svakom tick-u), sa novim podacima za svakog igrača
@@ -121,7 +145,7 @@ public class Network {
 
         /**
          * Treba da vrati u kom smeru igrač skreće. Poziva se u regularnom intervalu (v.
-         * {@link #onGameStarted(int, int, int, int, int)}), nakon svih onPlayerAdvanced
+         * {@link #onGameStarted(int, int, int, int, int, int)}), nakon svih onPlayerAdvanced
          *
          * @return jedno od {@link #DIRECTION_LEFT}, {@link #DIRECTION_STRAIGHT}, {@link #DIRECTION_RIGHT}
          */
@@ -130,7 +154,9 @@ public class Network {
         /**
          * Poziva se pri zatvaranju socketa da označi kraj igre
          */
-        void onGameFinished(); //todo multiple rounds, see winner
+        void onGameFinished();
+
+        void onRoundFinished(int[] scores);
 
         /**
          * Poziva se u slučaju greške, npr. ako se ne može konektovati
@@ -225,7 +251,8 @@ public class Network {
                 final WebSocket gameSocket = WebSockets.newSocket(HOST + START + roomId + "/" + id);
                 gameSocket.addListener(new WebSocketListener() {
                     boolean gameStarted = false;
-                    int players;
+                    int numOfPlayers;
+                    NetworkPlayer[] players;
 
                     @Override
                     public boolean onOpen(WebSocket webSocket) {
@@ -247,55 +274,93 @@ public class Network {
                     public boolean onMessage(final WebSocket webSocket, String packet) {
                         JsonReader reader = new JsonReader();
                         JsonValue  json   = reader.parse(packet);
-                        int        l      = json.size;
-                        if (!gameStarted) {
-                            final JsonValue gameInfo = json.get(l - 1);
-                            final int players = gameInfo.getInt(JSON_GI_PLAYERS),
-                                    x = gameInfo.getInt(JSON_GI_X),
-                                    y = gameInfo.getInt(JSON_GI_Y),
-                                    intv = gameInfo.getInt(JSON_GI_TIMESTEP_INTERVAL),
-                                    delay = gameInfo.getInt(JSON_GI_TIMESTEP_DELAY);
-                            this.players = players;
-                            Gdx.app.postRunnable(new Runnable() {
-                                @Override
-                                public void run() {
-                                    callbacks.onGameStarted(players, x, y, delay, intv);
+                        if(json.isObject() && json.has(JSON_PI_ID)) {
+                            callbacks.setMyId(json.getInt(JSON_PI_ID));
+                        } else if(json.get(0).isString()) {
+                            String label = json.get(0).asString();
+                            if(label.equals(JSON_LABEL_ROUND_START)) {
+                                if (!gameStarted) {
+                                    final JsonValue gameInfo = json.get(1);
+                                    final int pc = gameInfo.getInt(JSON_GI_PLAYERS),
+                                            x = gameInfo.getInt(JSON_GI_X),
+                                            y = gameInfo.getInt(JSON_GI_Y),
+                                            intv = gameInfo.getInt(JSON_GI_TIMESTEP_INTERVAL),
+                                            delay = gameInfo.getInt(JSON_GI_TIMESTEP_DELAY),
+                                            rnd = gameInfo.getInt(JSON_GI_ROUNDS);
+                                    this.numOfPlayers = pc;
+                                    Gdx.app.postRunnable(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            callbacks.onGameStarted(pc, x, y, rnd, delay, intv);
+                                        }
+                                    });
+                                    gameStarted = true;
+                                    this.players = new NetworkPlayer[numOfPlayers];
                                 }
-                            });
-                            gameStarted = true;
-                            l--;
-                        }
-                        for (int i = 0; i < this.players; i++) {
-                            final JsonValue playerInfo = json.get(i);
-                            final int id = playerInfo.getInt(JSON_PI_ID), state = playerInfo.getInt(JSON_PI_STATE), x, y;
-                            if(state != Player.STATE_DEAD) {
-                                x = playerInfo.getInt(JSON_PI_X);
-                                y = playerInfo.getInt(JSON_PI_Y);
-                            } else {
-                                x=y=-1;
+                                for(int i=2; i<json.size; i++) {
+                                    JsonValue v = json.get(i);
+                                    int id = v.getInt(JSON_PI_ID);
+                                    if(players[id] == null) {
+                                        players[id] = new NetworkPlayer(id, v.getInt(JSON_PU_X), v.getInt(JSON_PU_Y));
+                                    } else {
+                                        players[i].resetTo(v.getInt(JSON_PU_X), v.getInt(JSON_PU_Y));
+                                    }
+                                }
+                                Gdx.app.postRunnable(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        callbacks.onRoundStarted();
+                                        callbacks.initPlayers(players);
+                                    }
+                                });
+                            } else if(label.equals(JSON_LABEL_ROUND_END)) {
+                                final int[] scores = new int[numOfPlayers];
+                                for(int i=1; i<json.size; i++) {
+                                    JsonValue v = json.get(i);
+                                    scores[v.getInt(JSON_PI_ID)] = v.getInt(JSON_PI_SCORE);
+                                }
+                                Gdx.app.postRunnable(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        callbacks.onRoundFinished(scores);
+                                    }
+                                });
                             }
-                            final float thickness = playerInfo.getFloat(JSON_PI_THICKNESS);
-                            //final double dir = playerInfo.getInt(JSON_PI_DIRECTION),
-                            //        spd = playerInfo.getInt(JSON_PI_SPEED);
-                            Gdx.app.postRunnable(new Runnable() {
-                                @Override
-                                public void run() {
-                                    callbacks.onPlayerAdvanced(id, state, x, y, thickness);
+                        } else {
+                            for (int i = 0; i < this.numOfPlayers; i++) {
+                                final JsonValue playerInfo = json.get(i);
+                                final int id = playerInfo.getInt(JSON_PI_ID), state
+                                        = playerInfo.getInt(JSON_PI_STATE),
+                                        x, y;
+                                if (state != Player.STATE_DEAD) {
+                                    x = playerInfo.getInt(JSON_PI_X);
+                                    y = playerInfo.getInt(JSON_PI_Y);
+                                } else {
+                                    x = y = -1;
                                 }
-                            });
-                        }
-                        if(this.players != l) {
-                            final JsonValue powerupInfo = json.get(l-1);
-                            final int x = powerupInfo.getInt(JSON_PU_X),
-                                    y = powerupInfo.getInt(JSON_PU_Y),
-                                    type = powerupInfo.getInt(JSON_PU_TYPE),
-                                    timeAlive = powerupInfo.getInt(JSON_PU_TIME_ALIVE);
-                            Gdx.app.postRunnable(new Runnable() {
-                                @Override
-                                public void run() {
-                                    callbacks.onPowerUpAdded(type, x, y, timeAlive);
-                                }
-                            });
+                                final float thickness = playerInfo.getFloat(JSON_PI_THICKNESS);
+                                //final double dir = playerInfo.getInt(JSON_PI_DIRECTION),
+                                //        spd = playerInfo.getInt(JSON_PI_SPEED);
+                                Gdx.app.postRunnable(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        callbacks.onPlayerAdvanced(id, state, x, y, thickness);
+                                    }
+                                });
+                            }
+                            if (this.numOfPlayers != json.size) {
+                                final JsonValue powerupInfo = json.get(json.size - 1);
+                                final int x = powerupInfo.getInt(JSON_PU_X),
+                                        y = powerupInfo.getInt(JSON_PU_Y),
+                                        type = powerupInfo.getInt(JSON_PU_TYPE),
+                                        timeAlive = powerupInfo.getInt(JSON_PU_TIME_ALIVE);
+                                Gdx.app.postRunnable(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        callbacks.onPowerUpAdded(type, x, y, timeAlive);
+                                    }
+                                });
+                            }
                         }
                         Gdx.app.postRunnable(new Runnable() {
                             @Override
