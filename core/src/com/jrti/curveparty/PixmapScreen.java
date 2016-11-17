@@ -48,7 +48,7 @@ public class PixmapScreen implements Screen {
     }
 
     public PixmapScreen startSingleplayer() {
-        GameState gameState = new GameState(GRID_X, GRID_Y, 1);
+        GameState gameState = new GameState(GRID_X, GRID_Y, 2);
         gameState.startGame(this);
         return this;
     }

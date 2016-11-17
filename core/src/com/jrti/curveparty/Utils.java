@@ -2,16 +2,16 @@ package com.jrti.curveparty;
 
 import com.badlogic.gdx.math.GridPoint2;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by luka on 14.11.16..
  */
 
 public class Utils {
-    static Set<GridPoint2> bresenham(int x0, int y0, int x1, int y1) {
-        Set<GridPoint2> result = new HashSet<GridPoint2>(4);
+    static List<GridPoint2> bresenham(int x0, int y0, int x1, int y1) {
+        List<GridPoint2> result = new ArrayList<GridPoint2>(4);
         if(Math.abs(x1-x0) <= 1 && Math.abs(y1-y0) <= 1) {
             result.add(new GridPoint2(x1, y1));
             return result;

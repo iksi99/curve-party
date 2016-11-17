@@ -6,7 +6,6 @@ import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.math.GridPoint2;
 
 import java.util.Random;
 
@@ -81,9 +80,9 @@ public class GameScreen implements Screen {
         ren.begin(ShapeRenderer.ShapeType.Filled);
         for (Player p : gameState.getPlayerList()) {
             ren.setColor(p.getColor());
-            for (GridPoint2 gp : p.getRenderList()) {
-                ren.rect(gp.x, gp.y, 1, 1);
-            }
+            //for (GridPoint2 gp : p.getRenderList()) {
+            //    ren.rect(gp.x, gp.y, 1, 1);
+            //}
             addRect = System.nanoTime();
 
             if (p.getState() != Player.STATE_DEAD) {
