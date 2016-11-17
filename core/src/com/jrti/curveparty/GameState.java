@@ -3,7 +3,6 @@ package com.jrti.curveparty;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.math.GridPoint2;
-import com.badlogic.gdx.math.Rectangle;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -22,14 +21,15 @@ import java.util.concurrent.TimeUnit;
 public class GameState {
     public static final boolean USE_TOUCH_COMMANDS = false;
     public static final int TIMESTEP_DURATION = 25;
+    public static final int STEPS_IN_SEC = 1000/TIMESTEP_DURATION;
     public static final double TILT_THRESHOLD = 0.5;
 
-    private int x;
-    private int y;
+    private final int x;
+    private final int y;
     private int numOfPlayers;
 
 
-    private Rectangle[][]   gameMatrix;
+    //private Rectangle[][]   gameMatrix;
     private Set<GridPoint2> occupiedFields; //could (should?) use boolean matrix
     private List<Player> playerList = new ArrayList<Player>();
 
@@ -37,36 +37,41 @@ public class GameState {
         this.x = x;
         this.y = y;
         this.numOfPlayers = numOfPlayers;
-        gameMatrix = new Rectangle[x][y];
+        //gameMatrix = new Rectangle[x][y];
         occupiedFields = new HashSet<GridPoint2>();
 
-        for (int i = 0; i < x; i++) {
+        /*for (int i = 0; i < x; i++) {
             for (int j = 0; j < y; j++) {
                 gameMatrix[i][j] = new Rectangle(i, j, 0.5f, 0.5f);
             }
-        }
+        }*/
     }
 
     public void startGame(final PixmapScreen screen) {
         Random rnd = new Random();
         final LocalPlayer localPlayer = addLocalPlayer(0, rnd.nextInt(x - 100) + 50, rnd.nextInt(y - 70) + 35,
-                                               rnd.nextFloat() * 6.283185f);
+                                               rnd.nextDouble() * 6.283185);
+        for(int i=1; i<numOfPlayers; i++) {
+            addAI(i, rnd.nextInt(x-100)+50, rnd.nextInt(y-70)+35, rnd.nextDouble()*6.283185);
+        }
         if(USE_TOUCH_COMMANDS) setTouchControls(localPlayer);
         ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor();
         exec.scheduleAtFixedRate(new Runnable() {
-            private int rot = Gdx.input.getRotation();
             @Override
             public void run() {
-                if(localPlayer.getState() != Player.STATE_DEAD) {
+                if(localPlayer.getState() != Player.STATE_DEAD) { //todo should check for player state or game end?
                     if (!USE_TOUCH_COMMANDS) {
                         double tilt = Gdx.input.getAccelerometerY();
-                        Gdx.app.log("GameState", "tilt: " + tilt + ", rot: " + rot);
                         if (tilt > TILT_THRESHOLD) localPlayer.turn(Player.DIRECTION_RIGHT);
                         else if (tilt < -TILT_THRESHOLD) localPlayer.turn(Player.DIRECTION_LEFT);
                     }
-                    List<GridPoint2> moved = localPlayer.move();
-                    if(localPlayer.getState() != Player.STATE_INVISIBLE)
-                        screen.drawPoints(moved, localPlayer.getColor());
+                    for(Player p : playerList) {
+                        if(p.getState() != Player.STATE_DEAD) {
+                            List<GridPoint2> moved = p.move();
+                            if (p.getState() != Player.STATE_INVISIBLE)
+                                screen.drawPoints(moved, p.getColor());
+                        }
+                    }
                 }
             }
         }, 5, TIMESTEP_DURATION, TimeUnit.MILLISECONDS);
@@ -113,6 +118,10 @@ public class GameState {
         return occupiedFields.contains(p);
     }
 
+    public boolean isAvailable(GridPoint2 point) {
+        return point.x > 0 && point.y > 0 && point.x < x && point.y < y && !isOccupied(point);
+    }
+
     public void setOccupied(GridPoint2 p) {
         occupiedFields.add(p);
     }
@@ -121,8 +130,14 @@ public class GameState {
         occupiedFields.addAll(points);
     }
 
-    public LocalPlayer addLocalPlayer(int id, int xPos, int yPos, float direction) {
+    public LocalPlayer addLocalPlayer(int id, int xPos, int yPos, double direction) {
         LocalPlayer p = new LocalPlayer(xPos, yPos, direction, id, this);
+        playerList.add(p);
+        return p;
+    }
+
+    public AIPlayer addAI(int id, int xPos, int yPos, double direction) {
+        AIPlayer p = new AIPlayer(id, xPos, yPos, direction, this);
         playerList.add(p);
         return p;
     }

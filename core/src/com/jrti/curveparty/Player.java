@@ -19,8 +19,9 @@ public interface Player {
 
     int STATE_VISIBLE = 0, STATE_INVISIBLE = 1, STATE_DEAD = 2;
 
-    double TURNING_ANGLE = 0.05;
-    int DEFAULT_THICKNESS = 5;
+    double TURNING_ANGLE     = 0.05;
+    double STEPS_TO_90_TURN  = (Math.PI / 2) / TURNING_ANGLE;
+    int    DEFAULT_THICKNESS = 5;
 
     float getX();
 
@@ -31,8 +32,6 @@ public interface Player {
     double getDirection();
 
     int getState();
-
-    List<GridPoint2> getRenderList();
 
     List<GridPoint2> move();
 

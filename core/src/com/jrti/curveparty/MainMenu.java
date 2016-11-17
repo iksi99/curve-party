@@ -22,7 +22,7 @@ import com.badlogic.gdx.utils.viewport.Viewport;
  */
 
 public class MainMenu implements Screen {
-    public static final boolean USING_PIXMAP = true;
+    //public static final boolean USING_PIXMAP = true;
 
     public static final int PAD_LOGO = 0, PAD_BUTTONS = 15;
 
@@ -90,10 +90,10 @@ public class MainMenu implements Screen {
         singleplayer.addListener(new ClickListener(){
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                if(USING_PIXMAP)
+                //if(USING_PIXMAP)
                     game.setScreen(new PixmapScreen(game).startSingleplayer());
-                else
-                    game.setScreen(new GameScreen(game));
+                //else
+                //    game.setScreen(new GameScreen(game));
             }
         });
         multiplayer.addListener(new ClickListener(){

@@ -5,6 +5,7 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.GridPoint2;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
@@ -33,9 +34,9 @@ public class LocalPlayer implements Player {
 
     private List<List<GridPoint2>> recentlyOccupied = new LinkedList<List<GridPoint2>>();
     private static final int RECENT = 2;
-    private List<GridPoint2> renderList = new ArrayList<GridPoint2>(1024);
+    //private List<GridPoint2> renderList = new ArrayList<GridPoint2>(1024);
 
-    public LocalPlayer(int x, int y, float direction, int id, GameState gameState) {
+    public LocalPlayer(int x, int y, double direction, int id, GameState gameState) {
         this.x = x;
         this.y = y;
         this.direction = direction;
@@ -82,13 +83,6 @@ public class LocalPlayer implements Player {
         isTurningRight = turningRight;
     }
 
-    public List<GridPoint2> getRenderList() { return renderList; }
-
-    public void addRectangle(GridPoint2 point) {
-        if(!MainMenu.USING_PIXMAP)
-            renderList.add(point);
-    }
-
     @Override
     public List<GridPoint2> move() {
         float x1 = (float) (x + speed * Math.cos(direction));
@@ -113,7 +107,7 @@ public class LocalPlayer implements Player {
                         ix1 = (int)Math.round(newX + i*Math.cos(direction + Math.PI/2)),
                         iy0 = (int)Math.round(y + i*Math.sin(direction + Math.PI/2)),
                         iy1 = (int)Math.round(newY + i*Math.sin(direction + Math.PI/2));
-                Set<GridPoint2> line = Utils.bresenham(ix0, iy0, ix1, iy1);
+                List<GridPoint2> line = Utils.bresenham(ix0, iy0, ix1, iy1);
                 line.remove(new GridPoint2(ix0, iy0));
                 occupied.addAll(line);
                 for (GridPoint2 p : line) {
@@ -122,7 +116,7 @@ public class LocalPlayer implements Player {
                         state = STATE_DEAD;
                         collision = true;
                     } else {
-                        addRectangle(p);
+                        //addRectangle(p);
                     }
                 }
             }
@@ -156,7 +150,7 @@ public class LocalPlayer implements Player {
                 iy1 = (int)Math.round(newY + i*Math.sin(direction + Math.PI/2));
         if(i>0) Gdx.app.log("LocalPlayer", String.format(Locale.ENGLISH, "+{%d,%d}->{%d,%d}", ix0, iy0, ix1, iy1));
         else    Gdx.app.log("LocalPlayer", String.format(Locale.ENGLISH, "-{%d,%d}->{%d,%d}", ix0, iy0, ix1, iy1));
-        Set<GridPoint2> line = Utils.bresenham(ix0, iy0, ix1, iy1);
+        List<GridPoint2> line = Utils.bresenham(ix0, iy0, ix1, iy1);
         line.remove(new GridPoint2(ix0, iy0));
         Gdx.app.log("LocalPlayer", "occupied " + line);
         for (GridPoint2 p : line) {
@@ -166,10 +160,10 @@ public class LocalPlayer implements Player {
                 Gdx.app.log("LocalPlayer", "died at (" + p.x + "," + p.y + ")");
                 line = null; break;
             } else {
-                addRectangle(p);
+                //addRectangle(p);
             }
         }
-        return line;
+        return new HashSet<GridPoint2>(line==null?new ArrayList<GridPoint2>() : line);
     }
 
     @Override
