@@ -272,6 +272,7 @@ public class Network {
 
                     @Override
                     public boolean onMessage(final WebSocket webSocket, String packet) {
+                        System.out.println(packet);
                         JsonReader reader = new JsonReader();
                         JsonValue  json   = reader.parse(packet);
                         if(json.isObject() && json.has(JSON_PI_ID)) {
@@ -328,6 +329,7 @@ public class Network {
                             }
                         } else {
                             for (int i = 0; i < this.numOfPlayers; i++) {
+                                final float thickness;
                                 final JsonValue playerInfo = json.get(i);
                                 final int id = playerInfo.getInt(JSON_PI_ID), state
                                         = playerInfo.getInt(JSON_PI_STATE),
@@ -335,10 +337,11 @@ public class Network {
                                 if (state != Player.STATE_DEAD) {
                                     x = playerInfo.getInt(JSON_PI_X);
                                     y = playerInfo.getInt(JSON_PI_Y);
+                                    thickness = playerInfo.getFloat(JSON_PI_THICKNESS);
                                 } else {
                                     x = y = -1;
+                                    thickness = 1f;
                                 }
-                                final float thickness = playerInfo.getFloat(JSON_PI_THICKNESS);
                                 //final double dir = playerInfo.getInt(JSON_PI_DIRECTION),
                                 //        spd = playerInfo.getInt(JSON_PI_SPEED);
                                 Gdx.app.postRunnable(new Runnable() {

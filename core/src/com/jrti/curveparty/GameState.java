@@ -19,7 +19,7 @@ import java.util.concurrent.TimeUnit;
  */
 
 public class GameState {
-    public static final boolean USE_TOUCH_COMMANDS = false;
+    public static final boolean USE_TOUCH_COMMANDS = true;
     public static final int TIMESTEP_DURATION = 25;
     public static final int STEPS_IN_SEC = 1000/TIMESTEP_DURATION;
     public static final double TILT_THRESHOLD = 0.5;
