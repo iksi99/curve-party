@@ -267,6 +267,8 @@ public class Network {
 
                         @Override
                         public boolean onOpen(WebSocket webSocket) {
+
+                            System.out.println("onOpen");
                             return NOT_HANDLED;
                         }
 
@@ -283,6 +285,7 @@ public class Network {
 
                         @Override
                         public boolean onMessage(final WebSocket webSocket, String packet) {
+                            System.out.println("onMessage");
                             System.out.println(packet);
                             JsonReader reader = new JsonReader();
                             JsonValue  json   = reader.parse(packet);
