@@ -17,7 +17,6 @@ public class NetworkGame {
     private int gridX, gridY;
 
     public NetworkGame() {
-        //param initialization
     }
 
     //todo matchmaking ? (ovde ili unutar nekog screena, npr. PixmapScreen#startMuliplayer, šta prikazati dok traži igru?)
@@ -52,9 +51,13 @@ public class NetworkGame {
 
             @Override
             public void onPlayerAdvanced(int id, int state, int x, int y, float thickness) {
-                Player           p        = players[id];
-                List<GridPoint2> occupied = p.moveTo(x, y, thickness);
-                if(state!=Player.STATE_INVISIBLE) screen.drawPoints(occupied, p.getColor());
+                if (state != Player.STATE_DEAD) {
+                    Player p = players[id];
+                    List<GridPoint2> occupied = p.moveTo(x, y, thickness);
+                    if (state != Player.STATE_INVISIBLE) screen.drawPoints(occupied, p.getColor());
+                    System.out.println(p.getX() + " " + p.getY());
+                }
+                System.out.println("okej");
             }
 
             @Override

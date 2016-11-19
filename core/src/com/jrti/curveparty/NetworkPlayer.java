@@ -65,8 +65,24 @@ public class NetworkPlayer implements Player {
 
     @Override
     public List<GridPoint2> moveTo(float newX, float newY, float thickness) {
-        //todo implement direction-less moving (use Utils#bresenham, see LocalPlayer#moveTo)
-        return null;
+        List<GridPoint2> occupied = new ArrayList<GridPoint2>(16);
+        if (state == STATE_VISIBLE && (x!=newX || y!=newY)) { //ne želimo okupirati polja ako je linija INVISIBLE
+            int edgeToHead = Math.round((thickness - 1) / 2);
+            for(int i=-edgeToHead; i<=edgeToHead; i++) {
+                int ix0 = (int)Math.round(x + i*Math.cos(direction + Math.PI/2)),
+                        ix1 = (int)Math.round(newX + i*Math.cos(direction + Math.PI/2)),
+                        iy0 = (int)Math.round(y + i*Math.sin(direction + Math.PI/2)),
+                        iy1 = (int)Math.round(newY + i*Math.sin(direction + Math.PI/2));
+                List<GridPoint2> line = Utils.bresenham(ix0, iy0, ix1, iy1);
+                line.remove(new GridPoint2(ix0, iy0));
+                occupied.addAll(line);
+            }
+        }
+        if(state != STATE_DEAD) {
+            x = newX;
+            y = newY;
+        }
+        return occupied;
     }
 
     @Override

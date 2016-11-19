@@ -54,8 +54,23 @@ public class PixmapScreen implements Screen {
     }
 
     public PixmapScreen startMultiplayer() {
-        //todo
-        //videti šta i gde s matchmakingom, šta prikazivati korisniku dok se traži igra (v. NetworkGame)
+        System.out.println("okej");
+        final PixmapScreen thisScreen = this;
+        Network.findGame("iksi99", 2, new Network.MatchmakingCallbacks() {
+            @Override
+            public void onGameFound(String nickname, String id, String gameId)
+            {
+                NetworkGame networkGame = new NetworkGame();
+                networkGame.startGame(id, gameId, thisScreen);
+            }
+
+            @Override
+            public void onError(Throwable error) {
+                error.printStackTrace();
+            }
+
+        });
+
         return this;
     }
 
