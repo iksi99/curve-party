@@ -56,10 +56,11 @@ public class PixmapScreen implements Screen {
     public PixmapScreen startMultiplayer() {
         System.out.println("okej");
         final PixmapScreen thisScreen = this;
-        Network.findGame("iksi99", 2, new Network.MatchmakingCallbacks() {
+        Network.findGame("iksi99", 1, new Network.MatchmakingCallbacks() {
             @Override
             public void onGameFound(String nickname, String id, String gameId)
             {
+                System.out.println("found game " + gameId + "/" + id);
                 NetworkGame networkGame = new NetworkGame();
                 networkGame.startGame(id, gameId, thisScreen);
             }
