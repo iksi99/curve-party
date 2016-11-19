@@ -8,6 +8,7 @@ import com.github.czyzby.websocket.WebSocket;
 import com.github.czyzby.websocket.WebSocketListener;
 import com.github.czyzby.websocket.WebSockets;
 import com.github.czyzby.websocket.data.WebSocketCloseCode;
+import com.github.czyzby.websocket.data.WebSocketException;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -18,7 +19,7 @@ import java.util.concurrent.Executors;
  */
 
 public class Network {
-    public static final String HOST  = "79.101.8.7";
+    public static final String HOST  = "ws://79.101.8.7";
     public static final String FIND  = "/find";
     public static final String START = "/start/";
 
@@ -180,57 +181,66 @@ public class Network {
         executor.submit(new Runnable() {
             @Override
             public void run() {
-                WebSocket mmSocket = WebSockets.newSocket(HOST + FIND);
-                mmSocket.addListener(new WebSocketListener() {
-                    @Override
-                    public boolean onOpen(WebSocket webSocket) {
-                        StringBuilder json = new StringBuilder(64);
-                        json.append("{\"name\":\"")
-                            .append(nickname)
-                            .append("\",\"roomsize\":")
-                            .append(roomSize)
-                            .append("}");
-                        webSocket.send(json.toString());
-                        return FULLY_HANDLED;
-                    }
+                System.out.println("hello from the other thread");
+                try {
+                    WebSocket mmSocket = WebSockets.newSocket(HOST + FIND);
+                    System.out.println("ws state1: " + mmSocket.getState());
+                    mmSocket.addListener(new WebSocketListener() {
+                        @Override
+                        public boolean onOpen(WebSocket webSocket) {
+                            System.out.println("socket opened, sending data");
+                            StringBuilder json = new StringBuilder(64);
+                            json.append("{\"name\":\"")
+                                .append(nickname)
+                                .append("\",\"roomsize\":")
+                                .append(roomSize)
+                                .append("}");
+                            webSocket.send(json.toString());
+                            return FULLY_HANDLED;
+                        }
 
-                    @Override
-                    public boolean onClose(WebSocket webSocket, WebSocketCloseCode code, String reason) {
-                        return NOT_HANDLED;
-                    }
+                        @Override
+                        public boolean onClose(WebSocket webSocket, WebSocketCloseCode code, String reason) {
+                            return NOT_HANDLED;
+                        }
 
-                    @Override
-                    public boolean onMessage(WebSocket webSocket, String packet) {
-                        JsonReader   reader = new JsonReader();
-                        JsonValue    json   = reader.parse(packet);
-                        final String id     = json.getString(JSON_MM_ID);
-                        final String roomId = json.getString(JSON_MM_ROOM_ID);
-                        Gdx.app.postRunnable(new Runnable() {
-                            @Override
-                            public void run() {
-                                callbacks.onGameFound(nickname, id, roomId);
-                            }
-                        });
-                        return FULLY_HANDLED;
-                    }
+                        @Override
+                        public boolean onMessage(WebSocket webSocket, String packet) {
+                            JsonReader   reader = new JsonReader();
+                            JsonValue    json   = reader.parse(packet);
+                            final String id     = json.getString(JSON_MM_ID);
+                            final String roomId = json.getString(JSON_MM_ROOM_ID);
+                            Gdx.app.postRunnable(new Runnable() {
+                                @Override
+                                public void run() {
+                                    callbacks.onGameFound(nickname, id, roomId);
+                                }
+                            });
+                            return FULLY_HANDLED;
+                        }
 
-                    @Override
-                    public boolean onMessage(WebSocket webSocket, byte[] packet) {
-                        return NOT_HANDLED;
-                    }
+                        @Override
+                        public boolean onMessage(WebSocket webSocket, byte[] packet) {
+                            return NOT_HANDLED;
+                        }
 
-                    @Override
-                    public boolean onError(WebSocket webSocket, final Throwable error) {
-                        Gdx.app.postRunnable(new Runnable() {
-                            @Override
-                            public void run() {
-                                callbacks.onError(error);
-                            }
-                        });
-                        return FULLY_HANDLED;
-                    }
-                });
-                mmSocket.connect();
+                        @Override
+                        public boolean onError(WebSocket webSocket, final Throwable error) {
+                            Gdx.app.postRunnable(new Runnable() {
+                                @Override
+                                public void run() {
+                                    callbacks.onError(error);
+                                }
+                            });
+                            return FULLY_HANDLED;
+                        }
+                    });
+                    System.out.println("ws state2: " + mmSocket.getState());
+                    mmSocket.connect();
+                } catch (WebSocketException e) {
+                    System.out.println("error connecting: " + e.getMessage());
+                    e.printStackTrace();
+                }
             }
         });
     }
@@ -248,158 +258,164 @@ public class Network {
         executor.submit(new Runnable() {
             @Override
             public void run() {
-                final WebSocket gameSocket = WebSockets.newSocket(HOST + START + roomId + "/" + id);
-                gameSocket.addListener(new WebSocketListener() {
-                    boolean gameStarted = false;
-                    int numOfPlayers;
-                    NetworkPlayer[] players;
+                try {
+                    final WebSocket gameSocket = WebSockets.newSocket(HOST + START + roomId + "/" + id);
+                    gameSocket.addListener(new WebSocketListener() {
+                        boolean gameStarted = false;
+                        int numOfPlayers;
+                        NetworkPlayer[] players;
 
-                    @Override
-                    public boolean onOpen(WebSocket webSocket) {
-                        return NOT_HANDLED;
-                    }
+                        @Override
+                        public boolean onOpen(WebSocket webSocket) {
+                            return NOT_HANDLED;
+                        }
 
-                    @Override
-                    public boolean onClose(WebSocket webSocket, WebSocketCloseCode code, String reason) {
-                        Gdx.app.postRunnable(new Runnable() {
-                            @Override
-                            public void run() {
-                                callbacks.onGameFinished();
-                            }
-                        });
-                        return FULLY_HANDLED;
-                    }
+                        @Override
+                        public boolean onClose(WebSocket webSocket, WebSocketCloseCode code, String reason) {
+                            Gdx.app.postRunnable(new Runnable() {
+                                @Override
+                                public void run() {
+                                    callbacks.onGameFinished();
+                                }
+                            });
+                            return FULLY_HANDLED;
+                        }
 
-                    @Override
-                    public boolean onMessage(final WebSocket webSocket, String packet) {
-                        System.out.println(packet);
-                        JsonReader reader = new JsonReader();
-                        JsonValue  json   = reader.parse(packet);
-                        if(json.isObject() && json.has(JSON_PI_ID)) {
-                            callbacks.setMyId(json.getInt(JSON_PI_ID));
-                        } else if(json.get(0).isString()) {
-                            String label = json.get(0).asString();
-                            if(label.equals(JSON_LABEL_ROUND_START)) {
-                                if (!gameStarted) {
-                                    final JsonValue gameInfo = json.get(1);
-                                    final int pc = gameInfo.getInt(JSON_GI_PLAYERS),
-                                            x = gameInfo.getInt(JSON_GI_X),
-                                            y = gameInfo.getInt(JSON_GI_Y),
-                                            intv = gameInfo.getInt(JSON_GI_TIMESTEP_INTERVAL),
-                                            delay = gameInfo.getInt(JSON_GI_TIMESTEP_DELAY),
-                                            rnd = gameInfo.getInt(JSON_GI_ROUNDS);
-                                    this.numOfPlayers = pc;
+                        @Override
+                        public boolean onMessage(final WebSocket webSocket, String packet) {
+                            System.out.println(packet);
+                            JsonReader reader = new JsonReader();
+                            JsonValue  json   = reader.parse(packet);
+                            if (json.isObject() && json.has(JSON_PI_ID)) {
+                                callbacks.setMyId(json.getInt(JSON_PI_ID));
+                            } else if (json.get(0).isString()) {
+                                String label = json.get(0).asString();
+                                if (label.equals(JSON_LABEL_ROUND_START)) {
+                                    if (!gameStarted) {
+                                        final JsonValue gameInfo = json.get(1);
+                                        final int pc = gameInfo.getInt(JSON_GI_PLAYERS),
+                                                x = gameInfo.getInt(JSON_GI_X),
+                                                y = gameInfo.getInt(JSON_GI_Y),
+                                                intv = gameInfo.getInt(JSON_GI_TIMESTEP_INTERVAL),
+                                                delay = gameInfo.getInt(JSON_GI_TIMESTEP_DELAY),
+                                                rnd = gameInfo.getInt(JSON_GI_ROUNDS);
+                                        this.numOfPlayers = pc;
+                                        Gdx.app.postRunnable(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                callbacks.onGameStarted(pc, x, y, rnd, delay, intv);
+                                            }
+                                        });
+                                        gameStarted = true;
+                                        this.players = new NetworkPlayer[numOfPlayers];
+                                    }
+                                    for (int i = 2; i < json.size; i++) {
+                                        JsonValue v  = json.get(i);
+                                        int       id = v.getInt(JSON_PI_ID);
+                                        if (players[id] == null) {
+                                            players[id] = new NetworkPlayer(id,
+                                                                            v.getInt(JSON_PU_X),
+                                                                            v.getInt(JSON_PU_Y));
+                                        } else {
+                                            players[i].resetTo(v.getInt(JSON_PU_X), v.getInt(JSON_PU_Y));
+                                        }
+                                    }
                                     Gdx.app.postRunnable(new Runnable() {
                                         @Override
                                         public void run() {
-                                            callbacks.onGameStarted(pc, x, y, rnd, delay, intv);
+                                            callbacks.onRoundStarted();
+                                            callbacks.initPlayers(players);
                                         }
                                     });
-                                    gameStarted = true;
-                                    this.players = new NetworkPlayer[numOfPlayers];
+                                } else if (label.equals(JSON_LABEL_ROUND_END)) {
+                                    final int[] scores = new int[numOfPlayers];
+                                    for (int i = 1; i < json.size; i++) {
+                                        JsonValue v = json.get(i);
+                                        scores[v.getInt(JSON_PI_ID)] = v.getInt(JSON_PI_SCORE);
+                                    }
+                                    Gdx.app.postRunnable(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            callbacks.onRoundFinished(scores);
+                                        }
+                                    });
                                 }
-                                for(int i=2; i<json.size; i++) {
-                                    JsonValue v = json.get(i);
-                                    int id = v.getInt(JSON_PI_ID);
-                                    if(players[id] == null) {
-                                        players[id] = new NetworkPlayer(id, v.getInt(JSON_PU_X), v.getInt(JSON_PU_Y));
+                            } else {
+                                for (int i = 0; i < this.numOfPlayers; i++) {
+                                    final float     thickness;
+                                    final JsonValue playerInfo = json.get(i);
+                                    final int id = playerInfo.getInt(JSON_PI_ID), state
+                                            = playerInfo.getInt(JSON_PI_STATE),
+                                            x, y;
+                                    if (state != Player.STATE_DEAD) {
+                                        x = playerInfo.getInt(JSON_PI_X);
+                                        y = playerInfo.getInt(JSON_PI_Y);
+                                        thickness = playerInfo.getFloat(JSON_PI_THICKNESS);
                                     } else {
-                                        players[i].resetTo(v.getInt(JSON_PU_X), v.getInt(JSON_PU_Y));
+                                        x = y = -1;
+                                        thickness = 1f;
                                     }
+                                    //final double dir = playerInfo.getInt(JSON_PI_DIRECTION),
+                                    //        spd = playerInfo.getInt(JSON_PI_SPEED);
+                                    Gdx.app.postRunnable(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            callbacks.onPlayerAdvanced(id, state, x, y, thickness);
+                                        }
+                                    });
                                 }
-                                Gdx.app.postRunnable(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        callbacks.onRoundStarted();
-                                        callbacks.initPlayers(players);
-                                    }
-                                });
-                            } else if(label.equals(JSON_LABEL_ROUND_END)) {
-                                final int[] scores = new int[numOfPlayers];
-                                for(int i=1; i<json.size; i++) {
-                                    JsonValue v = json.get(i);
-                                    scores[v.getInt(JSON_PI_ID)] = v.getInt(JSON_PI_SCORE);
+                                if (this.numOfPlayers != json.size) {
+                                    final JsonValue powerupInfo = json.get(json.size - 1);
+                                    final int x = powerupInfo.getInt(JSON_PU_X),
+                                            y = powerupInfo.getInt(JSON_PU_Y),
+                                            type = powerupInfo.getInt(JSON_PU_TYPE),
+                                            timeAlive = powerupInfo.getInt(JSON_PU_TIME_ALIVE);
+                                    Gdx.app.postRunnable(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            callbacks.onPowerUpAdded(type, x, y, timeAlive);
+                                        }
+                                    });
                                 }
-                                Gdx.app.postRunnable(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        callbacks.onRoundFinished(scores);
-                                    }
-                                });
                             }
-                        } else {
-                            for (int i = 0; i < this.numOfPlayers; i++) {
-                                final float thickness;
-                                final JsonValue playerInfo = json.get(i);
-                                final int id = playerInfo.getInt(JSON_PI_ID), state
-                                        = playerInfo.getInt(JSON_PI_STATE),
-                                        x, y;
-                                if (state != Player.STATE_DEAD) {
-                                    x = playerInfo.getInt(JSON_PI_X);
-                                    y = playerInfo.getInt(JSON_PI_Y);
-                                    thickness = playerInfo.getFloat(JSON_PI_THICKNESS);
-                                } else {
-                                    x = y = -1;
-                                    thickness = 1f;
+                            Gdx.app.postRunnable(new Runnable() {
+                                @Override
+                                public void run() {
+                                    final int dir = callbacks.getTurningDirection(); //jer koliko se sećam za
+                                    // interakciju s ulazom i izlazom moramo biti na UI thread-u, ali za networking u
+                                    //background-u a pošto je razumno očekivati da će ova metoda komunicirati sa
+                                    // spoljnim svetom (dodir ili nagib uređaja), wrap-ujem sve u postRunnable
+                                    executor.submit(new Runnable() { //jer komunikacija sa serverom ide u pozadinu
+                                        @Override
+                                        public void run() {
+                                            webSocket.send(String.valueOf(dir));
+                                        }
+                                    });
                                 }
-                                //final double dir = playerInfo.getInt(JSON_PI_DIRECTION),
-                                //        spd = playerInfo.getInt(JSON_PI_SPEED);
-                                Gdx.app.postRunnable(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        callbacks.onPlayerAdvanced(id, state, x, y, thickness);
-                                    }
-                                });
-                            }
-                            if (this.numOfPlayers != json.size) {
-                                final JsonValue powerupInfo = json.get(json.size - 1);
-                                final int x = powerupInfo.getInt(JSON_PU_X),
-                                        y = powerupInfo.getInt(JSON_PU_Y),
-                                        type = powerupInfo.getInt(JSON_PU_TYPE),
-                                        timeAlive = powerupInfo.getInt(JSON_PU_TIME_ALIVE);
-                                Gdx.app.postRunnable(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        callbacks.onPowerUpAdded(type, x, y, timeAlive);
-                                    }
-                                });
-                            }
+                            });
+                            return FULLY_HANDLED;
                         }
-                        Gdx.app.postRunnable(new Runnable() {
-                            @Override
-                            public void run() {
-                                final int dir = callbacks.getTurningDirection(); //jer koliko se sećam za
-                                // interakciju s ulazom i izlazom moramo biti na UI thread-u, ali za networking u
-                                //background-u a pošto je razumno očekivati da će ova metoda komunicirati sa
-                                // spoljnim svetom (dodir ili nagib uređaja), wrap-ujem sve u postRunnable
-                                executor.submit(new Runnable() { //jer komunikacija sa serverom ide u pozadinu
-                                    @Override
-                                    public void run() {
-                                        webSocket.send(String.valueOf(dir));
-                                    }
-                                });
-                            }
-                        });
-                        return FULLY_HANDLED;
-                    }
 
-                    @Override
-                    public boolean onMessage(WebSocket webSocket, byte[] packet) {
-                        return NOT_HANDLED;
-                    }
+                        @Override
+                        public boolean onMessage(WebSocket webSocket, byte[] packet) {
+                            return NOT_HANDLED;
+                        }
 
-                    @Override
-                    public boolean onError(WebSocket webSocket, final Throwable error) {
-                        Gdx.app.postRunnable(new Runnable() {
-                            @Override
-                            public void run() {
-                                callbacks.onError(error);
-                            }
-                        });
-                        return FULLY_HANDLED;
-                    }
-                });
-                gameSocket.connect();
+                        @Override
+                        public boolean onError(WebSocket webSocket, final Throwable error) {
+                            Gdx.app.postRunnable(new Runnable() {
+                                @Override
+                                public void run() {
+                                    callbacks.onError(error);
+                                }
+                            });
+                            return FULLY_HANDLED;
+                        }
+                    });
+                    gameSocket.connect();
+                } catch(WebSocketException e) {
+                    e.printStackTrace();
+                }
             }
         });
     }
