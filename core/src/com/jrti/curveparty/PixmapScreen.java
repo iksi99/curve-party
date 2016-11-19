@@ -9,6 +9,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.math.GridPoint2;
 
+import java.net.URLEncoder;
 import java.util.List;
 
 /**
@@ -55,19 +56,19 @@ public class PixmapScreen implements Screen {
 
     public PixmapScreen startMultiplayer() {
         System.out.println("okej");
-        final PixmapScreen thisScreen = this;
         Network.findGame("iksi99", 1, new Network.MatchmakingCallbacks() {
             @Override
             public void onGameFound(String nickname, String id, String gameId)
             {
                 System.out.println("found game " + gameId + "/" + id);
                 NetworkGame networkGame = new NetworkGame();
-                networkGame.startGame(id, gameId, thisScreen);
+                System.out.println("starting game");
+                networkGame.startGame(URLEncoder.encode(id), URLEncoder.encode(gameId), PixmapScreen.this);
             }
 
             @Override
             public void onError(Throwable error) {
-                error.printStackTrace();
+                System.out.println("kurcina");
             }
 
         });

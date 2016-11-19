@@ -3,6 +3,7 @@ package com.jrti.curveparty;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.math.GridPoint2;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -18,8 +19,6 @@ public class NetworkGame {
 
     public NetworkGame() {
     }
-
-    //todo matchmaking ? (ovde ili unutar nekog screena, npr. PixmapScreen#startMuliplayer, šta prikazati dok traži igru?)
 
     public void startGame(String userId, String gameId, final PixmapScreen screen) {
         Network.joinGame(userId, gameId, new Network.GameCallbacks() {
@@ -42,11 +41,15 @@ public class NetworkGame {
             @Override
             public void initPlayers(NetworkPlayer[] players) {
                 NetworkGame.this.players = players;
+                for(NetworkPlayer p : NetworkGame.this.players) {
+                    List<GridPoint2> l = new ArrayList<GridPoint2>();
+                    for(int i=-1;i<=1;i++) for(int j=-1; j<=1;j++) l.add(new GridPoint2((int)p.getX()+i,(int)p.getY()+j));
+                    screen.drawPoints(l, p.getColor());
+                }
             }
 
             @Override
             public void setMyId(int id) {
-                //todo
             }
 
             @Override
@@ -54,14 +57,14 @@ public class NetworkGame {
                 if (state != Player.STATE_DEAD) {
                     Player p = players[id];
                     List<GridPoint2> occupied = p.moveTo(x, y, thickness);
+                    //System.out.println("advancing to " + x + "," + y);
                     if (state != Player.STATE_INVISIBLE) screen.drawPoints(occupied, p.getColor());
-                    System.out.println(p.getX() + " " + p.getY());
                 }
-                System.out.println("okej");
             }
 
             @Override
             public void onPowerUpAdded(int type, int x, int y, int timeAlive) {
+                System.out.println("Powerup " + type + " na (" + x + "," + y + ")");
                 //todo add powerup on screen
             }
 
@@ -90,7 +93,7 @@ public class NetworkGame {
 
             @Override
             public void onError(Throwable error) {
-                //todo display error dialog
+                System.out.println("kurcina");
             }
         });
     }

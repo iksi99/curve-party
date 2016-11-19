@@ -19,7 +19,16 @@ import java.util.concurrent.Executors;
  */
 
 public class Network {
-    public static final String HOST  = "ws://79.101.8.7";
+    public static final boolean USE_REMOTE_SERVER = true;
+    static {
+        if(USE_REMOTE_SERVER) {
+            HOST = "ws://79.101.8.7";
+        } else {
+            HOST = "ws://192.168.0.15:9000";
+        }
+    }
+
+    public static final String HOST;
     public static final String FIND  = "/find";
     public static final String START = "/start/";
 
@@ -267,6 +276,8 @@ public class Network {
 
                         @Override
                         public boolean onOpen(WebSocket webSocket) {
+
+                            System.out.println("onOpen");
                             return NOT_HANDLED;
                         }
 
@@ -283,7 +294,6 @@ public class Network {
 
                         @Override
                         public boolean onMessage(final WebSocket webSocket, String packet) {
-                            System.out.println(packet);
                             JsonReader reader = new JsonReader();
                             JsonValue  json   = reader.parse(packet);
                             if (json.isObject() && json.has(JSON_PI_ID)) {
@@ -357,12 +367,12 @@ public class Network {
                                     }
                                     //final double dir = playerInfo.getInt(JSON_PI_DIRECTION),
                                     //        spd = playerInfo.getInt(JSON_PI_SPEED);
-                                    Gdx.app.postRunnable(new Runnable() {
-                                        @Override
-                                        public void run() {
+                                    //Gdx.app.postRunnable(new Runnable() {
+                                    //    @Override
+                                    //    public void run() {
                                             callbacks.onPlayerAdvanced(id, state, x, y, thickness);
-                                        }
-                                    });
+                                    //    }
+                                    //});
                                 }
                                 if (this.numOfPlayers != json.size) {
                                     final JsonValue powerupInfo = json.get(json.size - 1);
