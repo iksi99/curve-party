@@ -21,9 +21,6 @@ public class NetworkPlayer implements Player {
     private int     state          = STATE_VISIBLE;
 
 
-    private double direction=4; //invalid value
-
-
     public NetworkPlayer(int id, float x, float y) {
         this.id = id;
         this.x = x;
@@ -50,14 +47,12 @@ public class NetworkPlayer implements Player {
     }
 
     public double getDirection() {
-        return direction;
+        return Double.NaN;
     }
 
     public int getState() {
         return state;
     }
-
-    public List<GridPoint2> getRenderList() { return new ArrayList<GridPoint2>(0); }//return renderList; }
 
     public List<GridPoint2> move() {
         throw new UnsupportedOperationException("There's no move() for network players");
@@ -66,6 +61,7 @@ public class NetworkPlayer implements Player {
     @Override
     public List<GridPoint2> moveTo(float newX, float newY, float thickness) {
         List<GridPoint2> occupied = new ArrayList<GridPoint2>(16);
+        double direction = Math.atan2(newY - y, newX - x);
         if (state == STATE_VISIBLE && (x!=newX || y!=newY)) { //ne želimo okupirati polja ako je linija INVISIBLE
             int edgeToHead = Math.round((thickness - 1) / 2);
             for(int i=-edgeToHead; i<=edgeToHead; i++) {

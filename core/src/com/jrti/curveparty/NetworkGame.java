@@ -20,8 +20,6 @@ public class NetworkGame {
     public NetworkGame() {
     }
 
-    //todo matchmaking ? (ovde ili unutar nekog screena, npr. PixmapScreen#startMuliplayer, šta prikazati dok traži igru?)
-
     public void startGame(String userId, String gameId, final PixmapScreen screen) {
         Network.joinGame(userId, gameId, new Network.GameCallbacks() {
             boolean doInitPlayers = false;
@@ -59,14 +57,14 @@ public class NetworkGame {
                 if (state != Player.STATE_DEAD) {
                     Player p = players[id];
                     List<GridPoint2> occupied = p.moveTo(x, y, thickness);
+                    //System.out.println("advancing to " + x + "," + y);
                     if (state != Player.STATE_INVISIBLE) screen.drawPoints(occupied, p.getColor());
-                    System.out.println(p.getX() + " " + p.getY());
                 }
-                System.out.println("advance");
             }
 
             @Override
             public void onPowerUpAdded(int type, int x, int y, int timeAlive) {
+                System.out.println("Powerup " + type + " na (" + x + "," + y + ")");
                 //todo add powerup on screen
             }
 
