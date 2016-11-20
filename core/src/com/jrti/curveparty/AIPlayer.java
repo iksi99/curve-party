@@ -21,7 +21,7 @@ public class AIPlayer implements Player {
     private final double lookaheadAngle;
 
     private final int id;
-    private final Color color;
+    private Color color;
 
     private float x, y;
     private float speed=1;
@@ -148,6 +148,11 @@ public class AIPlayer implements Player {
     @Override
     public int getId() {
         return id;
+    }
+
+    @Override
+    public void setColor(Color color) {
+        this.color = color;
     }
 
     private boolean isRecentlyOccupied(GridPoint2 p) {

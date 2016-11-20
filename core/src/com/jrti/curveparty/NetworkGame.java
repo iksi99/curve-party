@@ -1,6 +1,7 @@
 package com.jrti.curveparty;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.GridPoint2;
 
 import java.util.ArrayList;
@@ -14,6 +15,7 @@ public class NetworkGame {
     public static final boolean USE_TOUCH_COMMANDS = false; //not implemented
     public static final double TILT_THRESHOLD = 0.5;
 
+    private List<PowerUp> powerups = new ArrayList<PowerUp>(2);
     private NetworkPlayer[] players;
     private int gridX, gridY;
 
@@ -22,7 +24,7 @@ public class NetworkGame {
 
     public void startGame(String userId, String gameId, final PixmapScreen screen) {
         Network.joinGame(userId, gameId, new Network.GameCallbacks() {
-            boolean doInitPlayers = false;
+            int myId=-1;
 
             @Override
             public void onGameStarted(int numOfPlayers, int x, int y, int rounds, int delay, int interval) {
@@ -30,7 +32,6 @@ public class NetworkGame {
                 gridX = x;
                 gridY = y;
                 screen.setPixmapSize(x, y);
-                doInitPlayers = true;
             }
 
             @Override
@@ -46,10 +47,13 @@ public class NetworkGame {
                     for(int i=-1;i<=1;i++) for(int j=-1; j<=1;j++) l.add(new GridPoint2((int)p.getX()+i,(int)p.getY()+j));
                     screen.drawPoints(l, p.getColor());
                 }
+                if(myId != -1) players[myId].setColor(Color.WHITE);
             }
 
             @Override
             public void setMyId(int id) {
+                myId = id;
+                if(players != null) players[id].setColor(Color.WHITE);
             }
 
             @Override
@@ -58,14 +62,36 @@ public class NetworkGame {
                     Player p = players[id];
                     List<GridPoint2> occupied = p.moveTo(x, y, thickness);
                     //System.out.println("advancing to " + x + "," + y);
-                    if (state != Player.STATE_INVISIBLE) screen.drawPoints(occupied, p.getColor());
+                    if (state != Player.STATE_INVISIBLE) {
+                        screen.drawPoints(occupied, p.getColor());
+                        boolean gotPowerup = false;
+                        for(GridPoint2 gp : occupied) {
+                            for (int i=0; i<powerups.size(); i++) {
+                                if (powerups.get(i).containsPoint(gp)) {
+                                    screen.clearPoints(powerups.get(i).getPoints());
+                                    powerups.remove(i);
+                                    gotPowerup = true;
+                                    break;
+                                }
+                            }
+                            if(gotPowerup) break;
+                        }
+                    }
+                }
+                for(int i=0; i<powerups.size(); i++) {
+                    if(!powerups.get(i).tick()) {
+                        screen.clearPoints(powerups.get(i).getPoints());
+                        powerups.remove(i);
+                        i--;
+                    }
                 }
             }
 
             @Override
             public void onPowerUpAdded(int type, int x, int y, int timeAlive) {
-                System.out.println("Powerup " + type + " na (" + x + "," + y + ")");
-                //todo add powerup on screen
+                PowerUp pu = new PowerUp(type, x, y, timeAlive);
+                powerups.add(pu);
+                screen.drawPoints(pu.getPixels());
             }
 
             @Override

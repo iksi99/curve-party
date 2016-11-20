@@ -11,6 +11,7 @@ import com.badlogic.gdx.math.GridPoint2;
 
 import java.net.URLEncoder;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Koristi Pixmap za iscrtavanje kriva na ekran, bez problema dostiže konstantnu brzinu od 60fps
@@ -18,6 +19,17 @@ import java.util.List;
  */
 
 public class PixmapScreen implements Screen {
+
+
+    public static class ColouredPoint {
+        public final GridPoint2 point;
+        public final Color colour;
+
+        public ColouredPoint(GridPoint2 point, Color colour) {
+            this.point = point;
+            this.colour = colour;
+        }
+    }
 
     public static final int            GRID_X   = 800;
     public static final int            GRID_Y   = 450;
@@ -43,19 +55,20 @@ public class PixmapScreen implements Screen {
         this.game = game;
 
         map = new Pixmap(GRID_X, GRID_Y, FORMAT);
-        map.setColor(BG_COLOR);
-        map.fill();
+        //map.setColor(BG_COLOR);
+        //map.fill();
         texture = new Texture(map);
     }
 
     public PixmapScreen startSingleplayer() {
+        map.setColor(BG_COLOR);
+        map.fill();
         GameState gameState = new GameState(GRID_X, GRID_Y, 2);
         gameState.startGame(this);
         return this;
     }
 
     public PixmapScreen startMultiplayer() {
-        System.out.println("okej");
         Network.findGame("iksi99", 2, new Network.MatchmakingCallbacks() {
             @Override
             public void onGameFound(String nickname, String id, String gameId)
@@ -84,8 +97,8 @@ public class PixmapScreen implements Screen {
     public void setPixmapSize(int x, int y) {
         if(x!=GRID_X || y !=GRID_Y) {
             map = new Pixmap(x, y, FORMAT);
-            map.setColor(BG_COLOR);
-            map.fill();
+            //map.setColor(BG_COLOR);
+            //map.fill();
         }
     }
 
@@ -106,7 +119,7 @@ public class PixmapScreen implements Screen {
         if(scores != null) {
             for(int i=0; i<scores.length; i++) {
                 FONT.setColor(scores[i].color);
-                FONT.draw(game.spriteBatch, String.valueOf(scores[i].score), 0.95f*w-i*15, 5); //todo proper
+                FONT.draw(game.spriteBatch, String.valueOf(scores[i].score), 0.95f*w-i*15, h-15); //todo proper
             }
         }
         game.spriteBatch.end();
@@ -144,9 +157,21 @@ public class PixmapScreen implements Screen {
         }
     }
 
+    public void drawPoints(List<ColouredPoint> pixels) {
+        for(ColouredPoint p : pixels) {
+            map.drawPixel(p.point.x, p.point.y, Color.rgba8888(p.colour));
+        }
+    }
+
     public void clearScreen() {
         map.setColor(BG_COLOR);
         map.fill();
+    }
+
+    public void clearPoints(Set<GridPoint2> points) {
+        map.setColor(BG_COLOR);
+        for(GridPoint2 gp : points)
+            map.drawPixel(gp.x, gp.y);
     }
 
     public void drawScores(Score[] scores) {

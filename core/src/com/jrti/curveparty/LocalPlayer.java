@@ -170,4 +170,9 @@ public class LocalPlayer implements Player {
     public int getId() {
         return id;
     }
+
+    @Override
+    public void setColor(Color color) {
+        this.color = color;
+    }
 }

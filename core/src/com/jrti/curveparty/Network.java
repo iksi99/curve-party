@@ -19,7 +19,7 @@ import java.util.concurrent.Executors;
  */
 
 public class Network {
-    public static final boolean USE_REMOTE_SERVER = true;
+    public static final boolean USE_REMOTE_SERVER = false;
     static {
         if(USE_REMOTE_SERVER) {
             HOST = "ws://79.101.8.7";
@@ -327,7 +327,7 @@ public class Network {
                                                                             v.getInt(JSON_PU_X),
                                                                             v.getInt(JSON_PU_Y));
                                         } else {
-                                            players[i].resetTo(v.getInt(JSON_PU_X), v.getInt(JSON_PU_Y));
+                                            players[id].resetTo(v.getInt(JSON_PU_X), v.getInt(JSON_PU_Y));
                                         }
                                     }
                                     Gdx.app.postRunnable(new Runnable() {
@@ -335,7 +335,7 @@ public class Network {
                                         public void run() {
                                             callbacks.onRoundStarted();
                                             callbacks.initPlayers(players);
-                                        }
+                                       }
                                     });
                                 } else if (label.equals(JSON_LABEL_ROUND_END)) {
                                     final int[] scores = new int[numOfPlayers];
