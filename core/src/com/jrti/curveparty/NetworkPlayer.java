@@ -86,6 +86,11 @@ public class NetworkPlayer implements Player {
         return id;
     }
 
+    @Override
+    public void setColor(Color color) {
+        this.color = color;
+    }
+
     public int getScore() {
         return score;
     }

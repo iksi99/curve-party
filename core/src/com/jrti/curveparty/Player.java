@@ -38,4 +38,6 @@ public interface Player {
     List<GridPoint2> moveTo(float x, float y, float thickness);
 
     int getId();
+
+    void setColor(Color color);
 }
