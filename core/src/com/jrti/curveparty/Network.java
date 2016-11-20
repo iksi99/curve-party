@@ -19,7 +19,7 @@ import java.util.concurrent.Executors;
  */
 
 public class Network {
-    public static final boolean USE_REMOTE_SERVER = false;
+    public static final boolean USE_REMOTE_SERVER = true;
     static {
         if(USE_REMOTE_SERVER) {
             HOST = "ws://79.101.8.7";
