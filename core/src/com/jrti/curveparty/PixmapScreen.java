@@ -31,6 +31,8 @@ public class PixmapScreen implements Screen {
         }
     }
 
+    public int numberOfPlayers;
+
     public static final int            GRID_X   = 800;
     public static final int            GRID_Y   = 450;
     private static final Pixmap.Format FORMAT   = Pixmap.Format.RGB565; //whatever
@@ -51,37 +53,38 @@ public class PixmapScreen implements Screen {
 
     private Texture texture;
 
-    public PixmapScreen(final CurveParty game) {
+    public PixmapScreen(final CurveParty game, int numberOfPlayers) {
         this.game = game;
 
         map = new Pixmap(GRID_X, GRID_Y, FORMAT);
         //map.setColor(BG_COLOR);
         //map.fill();
         texture = new Texture(map);
+
+        this.numberOfPlayers = numberOfPlayers;
     }
 
     public PixmapScreen startSingleplayer() {
         map.setColor(BG_COLOR);
         map.fill();
-        GameState gameState = new GameState(GRID_X, GRID_Y, 2);
+        GameState gameState = new GameState(GRID_X, GRID_Y, 2, game);
         gameState.startGame(this);
         return this;
     }
 
     public PixmapScreen startMultiplayer() {
-        Network.findGame("iksi99", 2, new Network.MatchmakingCallbacks() {
+        Network.findGame("iksi99", numberOfPlayers, new Network.MatchmakingCallbacks() {
             @Override
             public void onGameFound(String nickname, String id, String gameId)
             {
                 System.out.println("found game " + gameId + "/" + id);
                 NetworkGame networkGame = new NetworkGame();
                 System.out.println("starting game");
-                networkGame.startGame(URLEncoder.encode(id), URLEncoder.encode(gameId), PixmapScreen.this);
+                networkGame.startGame(URLEncoder.encode(id), URLEncoder.encode(gameId), PixmapScreen.this, game);
             }
 
             @Override
             public void onError(Throwable error) {
-                System.out.println("kurcina");
             }
 
         });
