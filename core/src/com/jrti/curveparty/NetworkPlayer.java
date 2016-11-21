@@ -12,21 +12,22 @@ import java.util.List;
 
 public class NetworkPlayer implements Player {
 
-    private int       id;
-    private float     x;
-    private float     y;
-    private int       score;
-    private Color     color;
+    private final int    id;
+    private float        x;
+    private float        y;
+    private int          score;
+    private Color        color;
+    private final String name;
 
     private int     state          = STATE_VISIBLE;
 
 
-    public NetworkPlayer(int id, float x, float y) {
+    public NetworkPlayer(int id, String name, float x, float y) {
         this.id = id;
+        this.name = name;
         this.x = x;
         this.y = y;
         this.color = COLORS[id];
-        this.id = id;
     }
 
     public void resetTo(int x, int y) {
@@ -96,5 +97,9 @@ public class NetworkPlayer implements Player {
     }
     public void setScore(int score) {
         this.score = score;
+    }
+
+    public String getName() {
+        return name;
     }
 }

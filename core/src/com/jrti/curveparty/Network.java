@@ -49,6 +49,7 @@ public class Network {
     private static final String JSON_PI_Y         = "y";
     private static final String JSON_PI_THICKNESS = "thk";
     private static final String JSON_PI_SCORE     = "score";
+    private static final String JSON_PI_NICKNAME  = "name";
 //    private static final String JSON_PI_DIRECTION = "dir";
 //    private static final String JSON_PI_SPEED     = "speed";
 
@@ -324,10 +325,11 @@ public class Network {
                                         int       id = v.getInt(JSON_PI_ID);
                                         if (players[id] == null) {
                                             players[id] = new NetworkPlayer(id,
-                                                                            v.getInt(JSON_PU_X),
-                                                                            v.getInt(JSON_PU_Y));
+                                                                            v.getString(JSON_PI_NICKNAME),
+                                                                            v.getInt(JSON_PI_X),
+                                                                            v.getInt(JSON_PI_Y));
                                         } else {
-                                            players[id].resetTo(v.getInt(JSON_PU_X), v.getInt(JSON_PU_Y));
+                                            players[id].resetTo(v.getInt(JSON_PI_X), v.getInt(JSON_PI_Y));
                                         }
                                     }
                                     Gdx.app.postRunnable(new Runnable() {

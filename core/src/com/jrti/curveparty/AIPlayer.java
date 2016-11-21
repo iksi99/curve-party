@@ -28,6 +28,8 @@ public class AIPlayer implements Player {
     private double dir;
     private int state;
     private int thickness;
+    private int turningLeft=0;
+    private int turningRight=0;
 
     private final GameState game;
     private List<List<GridPoint2>> recentlyOccupied = new LinkedList<List<GridPoint2>>();
@@ -43,7 +45,7 @@ public class AIPlayer implements Player {
         this.thickness = DEFAULT_THICKNESS;
         this.lookaheadLimit = (int)(speed * STEPS_TO_90_TURN * 2);
         FAR_AWAY = lookaheadLimit*2;
-        this.lookaheadAngle = TURNING_ANGLE * 6;
+        this.lookaheadAngle = Math.toRadians(30);
     }
 
     @Override
@@ -73,19 +75,25 @@ public class AIPlayer implements Player {
 
     @Override
     public List<GridPoint2> move() {
+        if(turningLeft>0) turningLeft--;
+        if(turningRight>0) turningRight--;
+        if(turningLeft > 0) return moveLeft();
+        if(turningRight > 0) return moveRight();
+
         int straight = lookStraight();
         int left = lookLeft();
         int right = lookRight();
-        Gdx.app.log("AIPlayer", String.format("s:%d, l:%d, r:%d", straight, left, right));
         if(straight == FAR_AWAY && left == FAR_AWAY && right == FAR_AWAY) return moveStraight();
         if(straight == FAR_AWAY && left == FAR_AWAY && right != FAR_AWAY) return moveLeft();
         if(straight == FAR_AWAY && left != FAR_AWAY && right == FAR_AWAY) return moveRight();
         if (straight != FAR_AWAY) {
             if(left >= right && left >= straight) {
                 Gdx.app.log("AIPlayer", "turning left");
+                turningLeft = GameState.STEPS_IN_SEC/2;
                 return moveLeft();
             } else if(right > left && right > straight) {
                 Gdx.app.log("AIPlayer", "turning right");
+                turningRight = GameState.STEPS_IN_SEC/2;
                 return moveRight();
             }
         }
@@ -180,7 +188,7 @@ public class AIPlayer implements Player {
         points.remove(0);
         for(int i=0; i<points.size(); i++)
             if(!game.isAvailable(points.get(i))) {
-                Gdx.app.log("AIPlayer", "lookahead got to " + points.get(i));
+                Gdx.app.log("AIPlayer", "lookahead got to " + points.get(i) + " ("+i+")");
                 return i;
             }
         return FAR_AWAY;
