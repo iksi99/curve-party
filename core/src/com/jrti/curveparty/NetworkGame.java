@@ -1,6 +1,8 @@
 package com.jrti.curveparty;
 
+import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.GridPoint2;
 
@@ -12,17 +14,41 @@ import java.util.List;
  */
 
 public class NetworkGame {
-    public static final boolean USE_TOUCH_COMMANDS = false; //not implemented
     public static final double TILT_THRESHOLD = 0.5;
+    public static CurveParty game;
 
     private List<PowerUp> powerups = new ArrayList<PowerUp>(2);
     private NetworkPlayer[] players;
     private int gridX, gridY;
 
+    private boolean isTurningLeft = false;
+    private boolean isTurningRight = false;
+
+    private int width = Gdx.graphics.getWidth();
+
     public NetworkGame() {
     }
 
-    public void startGame(String userId, String gameId, final PixmapScreen screen) {
+    public void startGame(String userId, String gameId, final PixmapScreen screen, final CurveParty game) {
+        Gdx.input.setInputProcessor(new InputAdapter() {
+            @Override
+            public boolean touchDown(int x, int y, int pointer, int button) {
+                if (x <= width / 2) {
+                    isTurningLeft = true;
+                } else {
+                    isTurningRight = true;
+                }
+                return true;
+            }
+
+            @Override
+            public boolean touchUp(int screenX, int screenY, int pointer, int button) {
+                isTurningLeft = false;
+                isTurningRight = false;
+                return true;
+            }
+        });
+
         Network.joinGame(userId, gameId, new Network.GameCallbacks() {
             int myId=-1;
 
@@ -96,10 +122,17 @@ public class NetworkGame {
 
             @Override
             public int getTurningDirection() {
-                double tilt = Gdx.input.getAccelerometerY();
-                if (tilt > TILT_THRESHOLD) return DIRECTION_RIGHT;
-                else if (tilt < -TILT_THRESHOLD) return DIRECTION_LEFT;
-                return DIRECTION_STRAIGHT;
+                if(game.USE_TOUCH_COMMANDS == true) {
+                    if(isTurningLeft) return DIRECTION_LEFT;
+                    else if(isTurningRight) return DIRECTION_RIGHT;
+                    return DIRECTION_STRAIGHT;
+                } else {
+                    double tilt = Gdx.input.getAccelerometerY();
+                    if (tilt > TILT_THRESHOLD) return DIRECTION_RIGHT;
+                    else if (tilt < -TILT_THRESHOLD) return DIRECTION_LEFT;
+                    return DIRECTION_STRAIGHT;
+                }
+
             }
 
             @Override
@@ -119,7 +152,6 @@ public class NetworkGame {
 
             @Override
             public void onError(Throwable error) {
-                System.out.println("kurcina");
             }
         });
     }

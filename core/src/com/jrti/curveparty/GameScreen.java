@@ -26,10 +26,12 @@ public class GameScreen implements Screen {
     private LocalPlayer localPlayer;
     //u redu je da znamo koji je "naš" player i deklarišemo kao Local kad ga već izdvajamo
 
-    private GameState gameState = new GameState(GRID_X, GRID_Y, 1);
+    private GameState gameState;
 
     public GameScreen(final CurveParty game) {
         this.game = game;
+
+        gameState = new GameState(GRID_X, GRID_Y, 1, game);
 
         final int width = Gdx.graphics.getWidth();
         ren = new ShapeRenderer();

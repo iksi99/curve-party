@@ -1,5 +1,6 @@
 package com.jrti.curveparty;
 
+import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.math.GridPoint2;
@@ -19,10 +20,11 @@ import java.util.concurrent.TimeUnit;
  */
 
 public class GameState {
-    public static final boolean USE_TOUCH_COMMANDS = true;
     public static final int TIMESTEP_DURATION = 25;
     public static final int STEPS_IN_SEC = 1000/TIMESTEP_DURATION;
     public static final double TILT_THRESHOLD = 0.5;
+
+    public static CurveParty game;
 
     private final int x;
     private final int y;
@@ -33,7 +35,7 @@ public class GameState {
     private Set<GridPoint2> occupiedFields; //could (should?) use boolean matrix
     private List<Player> playerList = new ArrayList<Player>();
 
-    public GameState(int x, int y, int numOfPlayers) {
+    public GameState(int x, int y, int numOfPlayers, CurveParty game) {
         this.x = x;
         this.y = y;
         this.numOfPlayers = numOfPlayers;
@@ -45,6 +47,8 @@ public class GameState {
                 gameMatrix[i][j] = new Rectangle(i, j, 0.5f, 0.5f);
             }
         }*/
+
+        this.game = game;
     }
 
     public void startGame(final PixmapScreen screen) {
@@ -54,13 +58,13 @@ public class GameState {
         for(int i=1; i<numOfPlayers; i++) {
             addAI(i, rnd.nextInt(x-100)+50, rnd.nextInt(y-70)+35, rnd.nextDouble()*6.283185);
         }
-        if(USE_TOUCH_COMMANDS) setTouchControls(localPlayer);
+        if(game.USE_TOUCH_COMMANDS) setTouchControls(localPlayer);
         ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor();
         exec.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
                 if(localPlayer.getState() != Player.STATE_DEAD) { //todo should check for player state or game end?
-                    if (!USE_TOUCH_COMMANDS) {
+                    if (!game.USE_TOUCH_COMMANDS) {
                         double tilt = Gdx.input.getAccelerometerY();
                         if (tilt > TILT_THRESHOLD) localPlayer.turn(Player.DIRECTION_RIGHT);
                         else if (tilt < -TILT_THRESHOLD) localPlayer.turn(Player.DIRECTION_LEFT);

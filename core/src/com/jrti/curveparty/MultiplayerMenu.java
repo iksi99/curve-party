@@ -8,7 +8,6 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
-import com.badlogic.gdx.scenes.scene2d.ui.CheckBox;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
@@ -19,16 +18,15 @@ import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
 /**
- * Created by cactoss on 7.11.2016..
+ * Created by cactoss on 21.11.2016..
  */
 
-public class MainMenu implements Screen {
+public class MultiplayerMenu implements Screen {
     //public static final boolean USING_PIXMAP = true;
 
     public static int PAD_LOGO = 0, PAD_BUTTONS;
 
     private final CurveParty game;
-    private final Screen thisScreen = this;
 
     private Texture logoTexture;
 
@@ -41,12 +39,12 @@ public class MainMenu implements Screen {
 
     int width, height;
 
-    TextButton singleplayer;
-    TextButton multiplayer;
-    CheckBox useTouch;
-    TextButton exitButton;
+    TextButton twoplayer;
+    TextButton threelayer;
+    TextButton fourplayer;
+    TextButton backButton;
 
-    public MainMenu(final CurveParty game) {
+    public MultiplayerMenu(final CurveParty game) {
         width = Gdx.graphics.getWidth();
         height = Gdx.graphics.getHeight();
         PAD_BUTTONS = height / 36;
@@ -72,11 +70,6 @@ public class MainMenu implements Screen {
     public void render(float delta) {
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-        if (useTouch.isChecked()) {
-            game.USE_TOUCH_COMMANDS = true;
-        } else {
-            game.USE_TOUCH_COMMANDS = false;
-        }
 
         stage.act();
         stage.draw();
@@ -93,43 +86,48 @@ public class MainMenu implements Screen {
         mainTable.top();
 
         //Create buttons
-        singleplayer    = new TextButton("Singleplayer", skin);
-        multiplayer = new TextButton("Multiplayer", skin);
-        useTouch = new CheckBox("Use touch instead of tilt", skin);
-        exitButton    = new TextButton("Exit", skin);
-        singleplayer.getLabel().setFontScale(height / 250);
-        multiplayer.getLabel().setFontScale(height / 250);
-        useTouch.getLabel().setFontScale(height / 250);
-        useTouch.getCells().get(0).size(height / 10, height / 10);
-        exitButton.getLabel().setFontScale(height / 250);
+        twoplayer    = new TextButton("2 players", skin);
+        threelayer = new TextButton("3 players", skin);
+        fourplayer    = new TextButton("4 players", skin);
+        backButton = new TextButton("Back", skin);
+        twoplayer.getLabel().setFontScale(height / 250);
+        threelayer.getLabel().setFontScale(height / 250);
+        fourplayer.getLabel().setFontScale(height / 250);
+        backButton.getLabel().setFontScale(height / 250);
 
-        singleplayer.addListener(new ClickListener(){
+        twoplayer.addListener(new ClickListener(){
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 //if(USING_PIXMAP)
-                    game.setScreen(new PixmapScreen(game, 1).startSingleplayer());
+                game.setScreen(new PixmapScreen(game, 2).startMultiplayer());
                 //else
                 //    game.setScreen(new GameScreen(game));
             }
         });
-        multiplayer.addListener(new ClickListener(){
+        threelayer.addListener(new ClickListener(){
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                game.setScreen(new MultiplayerMenu(game));
+                game.setScreen(new PixmapScreen(game, 3).startMultiplayer());
             }
         });
-        exitButton.addListener(new ClickListener(){
+        fourplayer.addListener(new ClickListener(){
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                Gdx.app.exit();
+                game.setScreen(new PixmapScreen(game, 4).startMultiplayer());
             }
+        });
+        backButton.addListener(new ClickListener() {
+           @Override
+            public void clicked(InputEvent event, float x, float y) {
+               game.setScreen(new MainMenu(game));
+           }
         });
 
         mainTable.add(logoImage).padBottom(PAD_LOGO).row();
-        mainTable.add(singleplayer).padBottom(PAD_BUTTONS).row();
-        mainTable.add(multiplayer).padBottom(PAD_BUTTONS).row();
-        mainTable.add(useTouch).padBottom(PAD_BUTTONS).row();
-        mainTable.add(exitButton).padBottom(PAD_BUTTONS).row();
+        mainTable.add(twoplayer).padBottom(PAD_BUTTONS).row();
+        mainTable.add(threelayer).padBottom(PAD_BUTTONS).row();
+        mainTable.add(fourplayer).padBottom(PAD_BUTTONS).row();
+        mainTable.add(backButton).padBottom(PAD_BUTTONS).row();
 
         //Add table to stage
         stage.addActor(mainTable);
@@ -137,9 +135,10 @@ public class MainMenu implements Screen {
 
     @Override
     public void hide() {
-        singleplayer    = null;
-        multiplayer = null;
-        exitButton    = null;
+        twoplayer = null;
+        threelayer = null;
+        fourplayer = null;
+        backButton = null;
     }
 
     @Override
@@ -149,6 +148,7 @@ public class MainMenu implements Screen {
     @Override
     public void resume() {
     }
+
 
     @Override
     public void dispose() {
