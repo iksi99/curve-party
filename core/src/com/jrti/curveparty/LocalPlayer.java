@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Random;
 import java.util.Set;
 
 /**
@@ -17,17 +18,19 @@ import java.util.Set;
 
 public class LocalPlayer implements Player {
 
-    private float     x;
-    private float     y;
-    private Color     color;
+    private float  x;
+    private float  y;
+    private Color  color;
+    private Random rnd = new Random();
 
     private int     state          = STATE_VISIBLE;
+    private int     turnsInvisible = 0;
     private boolean isTurningLeft  = false;
     private boolean isTurningRight = false;
 
     private GameState gameState;
 
-    private float speed     = 1;
+    private float speed     = DEFAULT_SPEED;
     private double direction;
     private int thickness;
     private int id;
@@ -85,6 +88,7 @@ public class LocalPlayer implements Player {
 
     @Override
     public List<GridPoint2> move() {
+        setVisibility();
         float x1 = (float) (x + speed * Math.cos(direction));
         float y1 = (float) (y + speed * Math.sin(direction));
         List<GridPoint2> ret = moveTo(x1, y1, thickness);
@@ -133,6 +137,26 @@ public class LocalPlayer implements Player {
             y = newY;
         }
         return occupied;
+    }
+
+    void setVisibility() {
+        switch (state) {
+            case STATE_VISIBLE:
+                int invisible = Utils.rollInvisible(rnd);
+                if (invisible != 0) {
+                    state = STATE_INVISIBLE;
+                    turnsInvisible = invisible;
+                }
+                break;
+            case STATE_INVISIBLE:
+                turnsInvisible--;
+                if (turnsInvisible == 0)
+                    state = STATE_VISIBLE;
+                break;
+            case STATE_DEAD:
+                ;
+                break;
+        }
     }
 
     private boolean isRecentlyOccupied(GridPoint2 p) {

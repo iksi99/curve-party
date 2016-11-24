@@ -69,12 +69,12 @@ public class NetworkGame {
             @Override
             public void initPlayers(NetworkPlayer[] players) {
                 NetworkGame.this.players = players;
+                if(myId != -1) players[myId].setColor(Color.WHITE);
                 for(NetworkPlayer p : NetworkGame.this.players) {
                     List<GridPoint2> l = new ArrayList<GridPoint2>();
-                    for(int i=-1;i<=1;i++) for(int j=-1; j<=1;j++) l.add(new GridPoint2((int)p.getX()+i,(int)p.getY()+j));
+                    for(int i=-2;i<=2;i++) for(int j=-2; j<=2;j++) l.add(new GridPoint2((int)p.getX()+i,(int)p.getY()+j));
                     screen.drawPoints(l, p.getColor());
                 }
-                if(myId != -1) players[myId].setColor(Color.WHITE);
             }
 
             @Override
@@ -123,7 +123,7 @@ public class NetworkGame {
 
             @Override
             public int getTurningDirection() {
-                if(game.USE_TOUCH_COMMANDS == true) {
+                if(game.useTouchCommands == true) {
                     if(isTurningLeft) return DIRECTION_LEFT;
                     else if(isTurningRight) return DIRECTION_RIGHT;
                     return DIRECTION_STRAIGHT;

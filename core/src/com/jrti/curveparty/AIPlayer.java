@@ -7,6 +7,7 @@ import com.badlogic.gdx.math.GridPoint2;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Random;
 
 /**
  * Created by luka on 17.11.16..
@@ -15,21 +16,23 @@ import java.util.List;
 public class AIPlayer implements Player {
 
     private final int FAR_AWAY;
-    private static final int RECENT = 3;
+    private static final int RECENT = 2;
 
     private final int lookaheadLimit;
     private final double lookaheadAngle;
 
     private final int id;
     private Color color;
+    private Random rnd = new Random();
 
     private float x, y;
-    private float speed=1;
+    private float speed=DEFAULT_SPEED;
     private double dir;
     private int state;
     private int thickness;
     private int turningLeft=0;
     private int turningRight=0;
+    private int turnsInvisible;
 
     private final GameState game;
     private List<List<GridPoint2>> recentlyOccupied = new LinkedList<List<GridPoint2>>();
@@ -43,9 +46,9 @@ public class AIPlayer implements Player {
         this.state = STATE_VISIBLE;
         this.game = game;
         this.thickness = DEFAULT_THICKNESS;
-        this.lookaheadLimit = (int)(speed * STEPS_TO_90_TURN * 2);
+        this.lookaheadLimit = (int)(speed * STEPS_TO_90_TURN * 1.5);
         FAR_AWAY = lookaheadLimit*2;
-        this.lookaheadAngle = Math.toRadians(30);
+        this.lookaheadAngle = Math.toRadians(20);
     }
 
     @Override
@@ -75,6 +78,7 @@ public class AIPlayer implements Player {
 
     @Override
     public List<GridPoint2> move() {
+        setVisibility();
         if(turningLeft>0) turningLeft--;
         if(turningRight>0) turningRight--;
         if(turningLeft > 0) return moveLeft();
@@ -89,11 +93,11 @@ public class AIPlayer implements Player {
         if (straight != FAR_AWAY) {
             if(left >= right && left >= straight) {
                 Gdx.app.log("AIPlayer", "turning left");
-                turningLeft = GameState.STEPS_IN_SEC/2;
+                turningLeft = 2;
                 return moveLeft();
             } else if(right > left && right > straight) {
                 Gdx.app.log("AIPlayer", "turning right");
-                turningRight = GameState.STEPS_IN_SEC/2;
+                turningRight = 2;
                 return moveRight();
             }
         }
@@ -111,7 +115,7 @@ public class AIPlayer implements Player {
     }
 
     private List<GridPoint2> moveStraight() {
-        return moveTo((float)(x + speed*Math.cos(dir)), (float)(y + speed*Math.cos(dir)), thickness);
+        return moveTo((float)(x + speed*Math.cos(dir)), (float)(y + speed*Math.sin(dir)), thickness);
     }
 
     @Override
@@ -151,6 +155,26 @@ public class AIPlayer implements Player {
             y = newY;
         }
         return occupied;
+    }
+
+    void setVisibility() {
+        switch (state) {
+            case STATE_VISIBLE:
+                int invisible = Utils.rollInvisible(rnd);
+                if (invisible != 0) {
+                    state = STATE_INVISIBLE;
+                    turnsInvisible = invisible;
+                }
+                break;
+            case STATE_INVISIBLE:
+                turnsInvisible--;
+                if (turnsInvisible == 0)
+                    state = STATE_VISIBLE;
+                break;
+            case STATE_DEAD:
+                ;
+                break;
+        }
     }
 
     @Override

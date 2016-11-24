@@ -11,7 +11,6 @@ import java.util.List;
  */
 
 public interface Player {
-    //sva polja u interfejsima su po defaultu public static final, dok su metode public
     boolean DIRECTION_LEFT  = true; //counter-clockwise
     boolean DIRECTION_RIGHT = false;
     Color[] COLORS          = {Color.CYAN, Color.RED, Color.YELLOW, Color.GREEN,
@@ -19,9 +18,10 @@ public interface Player {
 
     int STATE_VISIBLE = 0, STATE_INVISIBLE = 1, STATE_DEAD = 2;
 
-    double TURNING_ANGLE     = 0.05;
+    double TURNING_ANGLE     = 0.052;
     double STEPS_TO_90_TURN  = (Math.PI / 2) / TURNING_ANGLE;
     int    DEFAULT_THICKNESS = 5;
+    int    DEFAULT_SPEED     = 2;
 
     float getX();
 

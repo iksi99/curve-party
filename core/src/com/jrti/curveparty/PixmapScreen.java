@@ -1,6 +1,7 @@
 package com.jrti.curveparty;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
@@ -39,11 +40,14 @@ public class PixmapScreen implements Screen {
     public static final int            GRID_Y   = 450;
     private static final Pixmap.Format FORMAT   = Pixmap.Format.RGB565; //whatever
     private static final Color         BG_COLOR = Color.DARK_GRAY;
-    private static final BitmapFont FONT = new BitmapFont();
+
+    private final BitmapFont    font;
 
     private final CurveParty game;
     private Pixmap map;
     private WebSocket networkSocket;
+    private boolean isSearchingForGame = false;
+    private final BitmapFont searchingFont;
 
     static class Score {
         Color color; int score;
@@ -63,19 +67,23 @@ public class PixmapScreen implements Screen {
         //map.setColor(BG_COLOR);
         //map.fill();
         texture = new Texture(map);
+        font = game.getFont(14);
+        searchingFont = game.getFont(40);
 
         this.numberOfPlayers = numberOfPlayers;
+        Gdx.input.setCatchBackKey(true);
     }
 
     public PixmapScreen startSingleplayer() {
         map.setColor(BG_COLOR);
         map.fill();
-        GameState gameState = new GameState(GRID_X, GRID_Y, 2, game);
+        GameState gameState = new GameState(GRID_X, GRID_Y, 4, game);
         gameState.startGame(this);
         return this;
     }
 
     public PixmapScreen startMultiplayer() {
+        isSearchingForGame = true;
         networkSocket = Network.findGame("iksi99", numberOfPlayers, new Network.MatchmakingCallbacks() {
             @Override
             public void onGameFound(String nickname, String id, String gameId)
@@ -83,6 +91,7 @@ public class PixmapScreen implements Screen {
                 NetworkGame networkGame = new NetworkGame();
                 networkSocket = networkGame.startGame(URLEncoder.encode(id), URLEncoder.encode(gameId),
                                                       PixmapScreen.this, game);
+                isSearchingForGame = false;
             }
 
             @Override
@@ -116,15 +125,26 @@ public class PixmapScreen implements Screen {
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
+        if(Gdx.input.isKeyPressed(Input.Keys.BACK)) {
+            game.setScreen(new MainMenu(game));
+        }
+
         game.spriteBatch.begin();
-        texture.dispose();
-        texture = new Texture(map);
         int w = Gdx.graphics.getWidth(), h = Gdx.graphics.getHeight();
-        game.spriteBatch.draw(texture, 0, 0, w, h);
-        if(scores != null) {
-            for(int i=0; i<scores.length; i++) {
-                FONT.setColor(scores[i].color);
-                FONT.draw(game.spriteBatch, String.valueOf(scores[i].score), 0.95f*w-i*15, h-15); //todo proper
+        if(isSearchingForGame) {
+            searchingFont.draw(game.spriteBatch, "Searching...", w/2-80, h/2+10);
+        } else {
+            texture.dispose();
+            texture = new Texture(map);
+            game.spriteBatch.draw(texture, 0, 0, w, h);
+            if (scores != null) {
+                for (int i = 0; i < scores.length; i++) {
+                    font.setColor(scores[i].color);
+                    font.draw(game.spriteBatch,
+                              String.valueOf(scores[i].score),
+                              0.95f * w - i * 15,
+                              h - 15); //todo proper
+                }
             }
         }
         game.spriteBatch.end();

@@ -1,6 +1,5 @@
 package com.jrti.curveparty;
 
-import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.math.GridPoint2;
@@ -20,11 +19,14 @@ import java.util.concurrent.TimeUnit;
  */
 
 public class GameState {
-    public static final int TIMESTEP_DURATION = 25;
-    public static final int STEPS_IN_SEC = 1000/TIMESTEP_DURATION;
-    public static final double TILT_THRESHOLD = 0.5;
+    public static final int    TIMESTEP_DURATION        = 25;
+    public static final int    SEC                      = 1000 / TIMESTEP_DURATION;
+    public static final double TILT_THRESHOLD           = 0.8;
+    public static final double INVISIBILITY_CHANCE      = 1.0/(4 * SEC);
+    public static final int    MIN_INISIBILITY_DURATION = (int)(0.1 * SEC);
+    public static final int    MAX_INVISIBILITY_DURATION = SEC;
 
-    public static CurveParty game;
+    public CurveParty game;
 
     private final int x;
     private final int y;
@@ -53,18 +55,23 @@ public class GameState {
 
     public void startGame(final PixmapScreen screen) {
         Random rnd = new Random();
-        final LocalPlayer localPlayer = addLocalPlayer(0, rnd.nextInt(x - 100) + 50, rnd.nextInt(y - 70) + 35,
+        final LocalPlayer localPlayer = addLocalPlayer(0, rnd.nextInt(x - 160) + 80, rnd.nextInt(y - 100) + 50,
                                                rnd.nextDouble() * 6.283185);
         for(int i=1; i<numOfPlayers; i++) {
             addAI(i, rnd.nextInt(x-100)+50, rnd.nextInt(y-70)+35, rnd.nextDouble()*6.283185);
         }
-        if(game.USE_TOUCH_COMMANDS) setTouchControls(localPlayer);
+        if(game.useTouchCommands) setTouchControls(localPlayer);
+        for(Player p : playerList) {
+            List<GridPoint2> starting = new ArrayList<GridPoint2>(9);
+            for(int i=-2;i<=2;i++) for(int j=-2; j<=2;j++) starting.add(new GridPoint2((int)p.getX()+i,(int)p.getY()+j));
+            screen.drawPoints(starting, p.getColor());
+        }
         ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor();
         exec.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
-                if(localPlayer.getState() != Player.STATE_DEAD) { //todo should check for player state or game end?
-                    if (!game.USE_TOUCH_COMMANDS) {
+                if(localPlayer.getState() != Player.STATE_DEAD) {
+                    if (!game.useTouchCommands) {
                         double tilt = Gdx.input.getAccelerometerY();
                         if (tilt > TILT_THRESHOLD) localPlayer.turn(Player.DIRECTION_RIGHT);
                         else if (tilt < -TILT_THRESHOLD) localPlayer.turn(Player.DIRECTION_LEFT);
@@ -78,7 +85,7 @@ public class GameState {
                     }
                 }
             }
-        }, 5, TIMESTEP_DURATION, TimeUnit.MILLISECONDS);
+        }, 2000, TIMESTEP_DURATION, TimeUnit.MILLISECONDS);
     }
 
     private void setTouchControls(final LocalPlayer player) {

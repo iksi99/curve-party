@@ -13,7 +13,7 @@ import java.util.Set;
  */
 
 public class PowerUp {
-    public static final int EDGE_TO_CENTER = 7;
+    public static final int EDGE_TO_CENTER = 9;
     public enum Type {
         DOUBLE_SPEED(0) {
             @Override

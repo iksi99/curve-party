@@ -4,13 +4,17 @@ import com.badlogic.gdx.math.GridPoint2;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
+
+import static com.jrti.curveparty.GameState.MAX_INVISIBILITY_DURATION;
+import static com.jrti.curveparty.GameState.MIN_INISIBILITY_DURATION;
 
 /**
  * Created by luka on 14.11.16..
  */
 
 public class Utils {
-    static List<GridPoint2> bresenham(int x0, int y0, int x1, int y1) {
+    public static List<GridPoint2> bresenham(int x0, int y0, int x1, int y1) {
         List<GridPoint2> result = new ArrayList<GridPoint2>(4);
         if(Math.abs(x1-x0) <= 1 && Math.abs(y1-y0) <= 1) {
             result.add(new GridPoint2(x1, y1));
@@ -34,5 +38,13 @@ public class Utils {
             }
         }
         return result;
+    }
+
+    public static int rollInvisible(Random rnd) {
+        if(rnd.nextDouble() < GameState.INVISIBILITY_CHANCE) {
+            return rnd.nextInt(MAX_INVISIBILITY_DURATION-MIN_INISIBILITY_DURATION)+MIN_INISIBILITY_DURATION;
+        } else {
+            return 0;
+        }
     }
 }
