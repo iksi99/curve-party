@@ -2,6 +2,7 @@ package com.jrti.curveparty;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputAdapter;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.GridPoint2;
 
 import java.util.ArrayList;
@@ -57,6 +58,7 @@ public class GameState {
         Random rnd = new Random();
         final LocalPlayer localPlayer = addLocalPlayer(0, rnd.nextInt(x - 160) + 80, rnd.nextInt(y - 100) + 50,
                                                rnd.nextDouble() * 6.283185);
+        localPlayer.setColor(Color.WHITE);
         for(int i=1; i<numOfPlayers; i++) {
             addAI(i, rnd.nextInt(x-100)+50, rnd.nextInt(y-70)+35, rnd.nextDouble()*6.283185);
         }
@@ -66,23 +68,29 @@ public class GameState {
             for(int i=-2;i<=2;i++) for(int j=-2; j<=2;j++) starting.add(new GridPoint2((int)p.getX()+i,(int)p.getY()+j));
             screen.drawPoints(starting, p.getColor());
         }
-        ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor();
+        final ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor();
         exec.scheduleAtFixedRate(new Runnable() {
+            int score=0;
             @Override
             public void run() {
-                if(localPlayer.getState() != Player.STATE_DEAD) {
-                    if (!game.useTouchCommands) {
-                        double tilt = Gdx.input.getAccelerometerY();
-                        if (tilt > TILT_THRESHOLD) localPlayer.turn(Player.DIRECTION_RIGHT);
-                        else if (tilt < -TILT_THRESHOLD) localPlayer.turn(Player.DIRECTION_LEFT);
+                if(localPlayer.getState() != Player.STATE_DEAD) score++;
+                if (!game.useTouchCommands) {
+                    double tilt = Gdx.input.getAccelerometerY();
+                    if (tilt > TILT_THRESHOLD) localPlayer.turn(Player.DIRECTION_RIGHT);
+                    else if (tilt < -TILT_THRESHOLD) localPlayer.turn(Player.DIRECTION_LEFT);
+                }
+                boolean alive = false;
+                for(Player p : playerList) {
+                    if(p.getState() != Player.STATE_DEAD) {
+                        alive = true;
+                        List<GridPoint2> moved = p.move();
+                        if (p.getState() != Player.STATE_INVISIBLE)
+                            screen.drawPoints(moved, p.getColor());
                     }
-                    for(Player p : playerList) {
-                        if(p.getState() != Player.STATE_DEAD) {
-                            List<GridPoint2> moved = p.move();
-                            if (p.getState() != Player.STATE_INVISIBLE)
-                                screen.drawPoints(moved, p.getColor());
-                        }
-                    }
+                }
+                if(!alive) {
+                    exec.shutdownNow();
+                    //todo skor ?
                 }
             }
         }, 2000, TIMESTEP_DURATION, TimeUnit.MILLISECONDS);
@@ -148,7 +156,7 @@ public class GameState {
     }
 
     public AIPlayer addAI(int id, int xPos, int yPos, double direction) {
-        AIPlayer p = new AIPlayer(id, xPos, yPos, direction, this);
+        AIPlayer p = AITypes.generateRandom(id, xPos, yPos, direction, this);
         playerList.add(p);
         return p;
     }

@@ -14,6 +14,8 @@ import static com.jrti.curveparty.GameState.MIN_INISIBILITY_DURATION;
  */
 
 public class Utils {
+    public static final int ALMOST_EQUAL=2;
+
     public static List<GridPoint2> bresenham(int x0, int y0, int x1, int y1) {
         List<GridPoint2> result = new ArrayList<GridPoint2>(4);
         if(Math.abs(x1-x0) <= 1 && Math.abs(y1-y0) <= 1) {
@@ -46,5 +48,12 @@ public class Utils {
         } else {
             return 0;
         }
+    }
+
+    public static boolean almostEqual(int a, int b, int c, int thr) {
+        return Math.abs(a-b)<=thr && Math.abs(a-c)<=thr && Math.abs(b-c)<=thr;
+    }
+    public static boolean almostEqual(int a, int b, int thr) {
+        return Math.abs(a-b)<=thr;
     }
 }

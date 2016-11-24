@@ -15,6 +15,8 @@ import java.net.URLEncoder;
 import java.util.List;
 import java.util.Set;
 
+import static com.badlogic.gdx.graphics.Color.rgba8888;
+
 /**
  * Koristi Pixmap za iscrtavanje kriva na ekran, bez problema dostiže konstantnu brzinu od 60fps
  * Created by luka on 10.11.16..
@@ -22,6 +24,8 @@ import java.util.Set;
 
 public class PixmapScreen implements Screen {
 
+
+    private static final int FILL_IN_THRESHOLD = 5;
 
     public static class ColouredPoint {
         public final GridPoint2 point;
@@ -180,14 +184,45 @@ public class PixmapScreen implements Screen {
 
     public void drawPoints(List<GridPoint2> points, Color color) {
         map.setColor(color);
+        //int x0=GRID_X, y0=GRID_Y, x1=0, y1=0;
         for(GridPoint2 gp : points) {
             map.drawPixel(gp.x, gp.y);
+            /*if(gp.x < x0) x0=gp.x;
+            if(gp.x > x1) x1=gp.x;
+            if(gp.y < y0) y0=gp.y;
+            if(gp.y > y1) y1=gp.y;*/
         }
+        //fillInBlanks(x0, y0, x1, y1);
     }
 
     public void drawPoints(List<ColouredPoint> pixels) {
         for(ColouredPoint p : pixels) {
-            map.drawPixel(p.point.x, p.point.y, Color.rgba8888(p.colour));
+            map.drawPixel(p.point.x, p.point.y, rgba8888(p.colour));
+        }
+    }
+
+    private void fillInBlanks(int x0, int y0, int x1, int y1) {
+        int bg = rgba8888(BG_COLOR);
+        for(int x=x0; x<=x1; x++) {
+            for(int y=y0; y<=y1; y++) {
+                if(map.getPixel(x, y) == bg) {
+                    int err=0;
+                    int c=0;
+                    testSurroundings:
+                    for(int i=-1; i<=1; i++) {
+                        for(int j=-1; j<=1; j++) {
+                            if(j!=0 || i!=0) {
+                                int pix = map.getPixel(x+i, y+j);
+                                if(c==0 && pix==bg) err++;
+                                else if(c==0) c=pix;
+                                else if(c!=pix) err++;
+                                if(err >= FILL_IN_THRESHOLD) break testSurroundings;
+                            }
+                        }
+                    }
+                    if(err < FILL_IN_THRESHOLD) map.drawPixel(x, y, c);
+                }
+            }
         }
     }
 

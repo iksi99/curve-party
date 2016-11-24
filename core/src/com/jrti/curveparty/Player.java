@@ -11,17 +11,18 @@ import java.util.List;
  */
 
 public interface Player {
-    boolean DIRECTION_LEFT  = true; //counter-clockwise
-    boolean DIRECTION_RIGHT = false;
+    boolean DIRECTION_LEFT  = false; //counter-clockwise
+    boolean DIRECTION_RIGHT = true;
     Color[] COLORS          = {Color.CYAN, Color.RED, Color.YELLOW, Color.GREEN,
                                Color.LIGHT_GRAY, Color.CHARTREUSE, Color.BLUE, Color.MAGENTA};
 
     int STATE_VISIBLE = 0, STATE_INVISIBLE = 1, STATE_DEAD = 2;
 
     double TURNING_ANGLE     = 0.052;
-    double STEPS_TO_90_TURN  = (Math.PI / 2) / TURNING_ANGLE;
+    int STEPS_TO_90_TURN  = (int) ((Math.PI / 2) / TURNING_ANGLE);
     int    DEFAULT_THICKNESS = 5;
     int    DEFAULT_SPEED     = 2;
+    int TIME_TO_90_TURN   = STEPS_TO_90_TURN/DEFAULT_SPEED;
 
     float getX();
 

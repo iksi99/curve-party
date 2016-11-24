@@ -1,6 +1,5 @@
 package com.jrti.curveparty;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.GridPoint2;
 
@@ -9,6 +8,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 
+import static com.jrti.curveparty.GameState.SEC;
+
 /**
  * Created by luka on 17.11.16..
  */
@@ -16,7 +17,7 @@ import java.util.Random;
 public class AIPlayer implements Player {
 
     private final int FAR_AWAY;
-    private static final int RECENT = 2;
+    private static final int RECENT       = 2;
 
     private final int lookaheadLimit;
     private final double lookaheadAngle;
@@ -32,12 +33,24 @@ public class AIPlayer implements Player {
     private int thickness;
     private int turningLeft=0;
     private int turningRight=0;
+    private int goStraight=0;
     private int turnsInvisible;
+    private boolean aggresiveRandomize;
+    private int almostEqualThreshold;
+    private int decisiveMove;
+    private int safetyTurnThreshold;
 
     private final GameState game;
     private List<List<GridPoint2>> recentlyOccupied = new LinkedList<List<GridPoint2>>();
 
     public AIPlayer(int id, int x, int y, double direction, GameState game) {
+        this(id, x, y, direction, game, STEPS_TO_90_TURN * 3, Math.toRadians(30), false,
+             SEC/2, 2, (int) (STEPS_TO_90_TURN*1.5));
+    }
+
+    public AIPlayer(int id, int x, int y, double direction, GameState game, int lookaheadLimit,
+                    double lookaheadAngle, boolean aggresiveRandomize, int decisiveMove, int almostEqual,
+                    int safeTurn) {
         this.id = id;
         this.color = COLORS[id];
         this.x = x;
@@ -46,9 +59,13 @@ public class AIPlayer implements Player {
         this.state = STATE_VISIBLE;
         this.game = game;
         this.thickness = DEFAULT_THICKNESS;
-        this.lookaheadLimit = (int)(speed * STEPS_TO_90_TURN * 1.5);
+        this.lookaheadLimit = lookaheadLimit;
+        this.lookaheadAngle = lookaheadAngle;
+        this.aggresiveRandomize = aggresiveRandomize;
+        this.decisiveMove = decisiveMove;
+        this.almostEqualThreshold = almostEqual;
         FAR_AWAY = lookaheadLimit*2;
-        this.lookaheadAngle = Math.toRadians(20);
+        this.safetyTurnThreshold = safeTurn;
     }
 
     @Override
@@ -81,28 +98,61 @@ public class AIPlayer implements Player {
         setVisibility();
         if(turningLeft>0) turningLeft--;
         if(turningRight>0) turningRight--;
+        if(goStraight>0) goStraight--;
         if(turningLeft > 0) return moveLeft();
         if(turningRight > 0) return moveRight();
+        if(goStraight>0) return moveStraight();
 
         int straight = lookStraight();
         int left = lookLeft();
         int right = lookRight();
-        if(straight == FAR_AWAY && left == FAR_AWAY && right == FAR_AWAY) return moveStraight();
-        if(straight == FAR_AWAY && left == FAR_AWAY && right != FAR_AWAY) return moveLeft();
-        if(straight == FAR_AWAY && left != FAR_AWAY && right == FAR_AWAY) return moveRight();
+        if(straight < safetyTurnThreshold) {
+            if(left > right || Utils.almostEqual(left, right, almostEqualThreshold)) return moveLeft();
+            return moveRight();
+        }
+        if(Utils.almostEqual(straight, left, right, almostEqualThreshold)) return randomMove();
+        if(aggresiveRandomize) {
+            if(straight>right && Utils.almostEqual(straight, left, almostEqualThreshold)) return maybeLeft();
+            if(straight>left && Utils.almostEqual(straight, right, almostEqualThreshold)) return maybeRight();
+            if(left>straight && Utils.almostEqual(left, right, almostEqualThreshold)) return randomTurn();
+        }
         if (straight != FAR_AWAY) {
             if(left >= right && left >= straight) {
-                Gdx.app.log("AIPlayer", "turning left");
                 turningLeft = 2;
                 return moveLeft();
             } else if(right > left && right > straight) {
-                Gdx.app.log("AIPlayer", "turning right");
                 turningRight = 2;
                 return moveRight();
             }
         }
         return moveStraight();
     }
+
+    private List<GridPoint2> randomMove() {
+        int roll = rnd.nextInt(3);
+        switch (roll) {
+            case 0: turningLeft= decisiveMove; return moveLeft();
+            case 1: goStraight= decisiveMove; return moveStraight();
+            case 2: turningRight= decisiveMove; return moveRight();
+        }
+        return null;
+    }
+    private List<GridPoint2> maybeLeft() {
+        int roll = rnd.nextInt(2);
+        if(roll==0) {turningLeft= decisiveMove; return moveLeft();}
+        else        {goStraight= decisiveMove; return moveStraight();}
+    }
+    private List<GridPoint2> maybeRight() {
+        int roll = rnd.nextInt(2);
+        if(roll==0) {turningRight= decisiveMove; return moveRight();}
+        else        {goStraight= decisiveMove; return moveStraight();}
+    }
+    private List<GridPoint2> randomTurn() {
+        int roll = rnd.nextInt(2);
+        if(roll==0) {turningLeft= decisiveMove; return moveLeft();}
+        else        {turningRight= decisiveMove; return moveRight();}
+    }
+
 
     private List<GridPoint2> moveLeft() {
         dir-=TURNING_ANGLE;
@@ -212,7 +262,6 @@ public class AIPlayer implements Player {
         points.remove(0);
         for(int i=0; i<points.size(); i++)
             if(!game.isAvailable(points.get(i))) {
-                Gdx.app.log("AIPlayer", "lookahead got to " + points.get(i) + " ("+i+")");
                 return i;
             }
         return FAR_AWAY;
