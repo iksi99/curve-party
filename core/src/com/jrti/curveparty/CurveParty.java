@@ -1,33 +1,40 @@
 package com.jrti.curveparty;
 
-import com.badlogic.gdx.ApplicationAdapter;
+import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 
-public class CurveParty extends ApplicationAdapter {
-	SpriteBatch batch;
-	Texture img;
-	
-	@Override
-	public void create () {
-		batch = new SpriteBatch();
-		img = new Texture("badlogic.jpg");
-	}
+public class CurveParty extends Game {
+    public SpriteBatch spriteBatch;
+    public boolean useTouchCommands = false;
+    private FreeTypeFontGenerator FONT_GENERATOR;
 
-	@Override
-	public void render () {
-		Gdx.gl.glClearColor(1, 0, 0, 1);
-		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-		batch.begin();
-		batch.draw(img, 0, 0);
-		batch.end();
-	}
-	
-	@Override
-	public void dispose () {
-		batch.dispose();
-		img.dispose();
-	}
+    public static final String PREFS_NAME = "prefs";
+    public static final String PREFS_KEY_USE_TOUCH = "useTouch";
+
+    @Override
+    public void create() {
+        spriteBatch = new SpriteBatch();
+        useTouchCommands = Gdx.app.getPreferences(PREFS_NAME).getBoolean(PREFS_KEY_USE_TOUCH, false);
+        FONT_GENERATOR = new FreeTypeFontGenerator(Gdx.files.internal("roboto.ttf"));
+        this.setScreen(new MainMenu(this));
+    }
+
+    public BitmapFont getFont(int size) {
+        FreeTypeFontGenerator.FreeTypeFontParameter parameter = new FreeTypeFontGenerator.FreeTypeFontParameter();
+        parameter.size = size;
+        parameter.shadowOffsetX=2;
+        parameter.shadowOffsetY=2;
+        return FONT_GENERATOR.generateFont(parameter);
+    }
+
+    @Override
+    public void render() {
+       super.render();
+    }
+
+    @Override
+    public void dispose() {}
 }

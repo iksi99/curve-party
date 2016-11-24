@@ -5,6 +5,11 @@ sourceCompatibility = 1.6
 
 sourceSets.main.java.srcDirs = [ "src/" ]
 
+dependencies {
+    compile "com.github.czyzby:gdx-websocket:1.8.$gdxVersion"
+    compile "com.github.czyzby:gdx-websocket-common:1.8.$gdxVersion"
+    compile "com.badlogicgames.gdx:gdx-freetype:$gdxVersion"
+}
 
 eclipse.project {
     name = appName + "-core"
