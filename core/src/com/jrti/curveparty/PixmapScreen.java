@@ -8,6 +8,7 @@ import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.math.GridPoint2;
+import com.github.czyzby.websocket.WebSocket;
 
 import java.net.URLEncoder;
 import java.util.List;
@@ -31,6 +32,7 @@ public class PixmapScreen implements Screen {
         }
     }
 
+
     public int numberOfPlayers;
 
     public static final int            GRID_X   = 800;
@@ -41,6 +43,7 @@ public class PixmapScreen implements Screen {
 
     private final CurveParty game;
     private Pixmap map;
+    private WebSocket networkSocket;
 
     static class Score {
         Color color; int score;
@@ -73,14 +76,13 @@ public class PixmapScreen implements Screen {
     }
 
     public PixmapScreen startMultiplayer() {
-        Network.findGame("iksi99", numberOfPlayers, new Network.MatchmakingCallbacks() {
+        networkSocket = Network.findGame("iksi99", numberOfPlayers, new Network.MatchmakingCallbacks() {
             @Override
             public void onGameFound(String nickname, String id, String gameId)
             {
-                System.out.println("found game " + gameId + "/" + id);
                 NetworkGame networkGame = new NetworkGame();
-                System.out.println("starting game");
-                networkGame.startGame(URLEncoder.encode(id), URLEncoder.encode(gameId), PixmapScreen.this, game);
+                networkSocket = networkGame.startGame(URLEncoder.encode(id), URLEncoder.encode(gameId),
+                                                      PixmapScreen.this, game);
             }
 
             @Override
@@ -151,6 +153,9 @@ public class PixmapScreen implements Screen {
     @Override
     public void dispose() {
         map.dispose();
+        if(networkSocket != null && networkSocket.isOpen()) {
+            networkSocket.close();
+        }
     }
 
     public void drawPoints(List<GridPoint2> points, Color color) {
