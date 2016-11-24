@@ -187,18 +187,15 @@ public class Network {
      *
      * @param nickname nickname koji će igrač koristiti u igri, trenutno se ne prikazuje nigde niti ga server šalje
      */
-    public static void findGame(final String nickname, final int roomSize, final MatchmakingCallbacks callbacks) {
+    public static WebSocket findGame(final String nickname, final int roomSize, final MatchmakingCallbacks callbacks) {
+        final WebSocket mmSocket = WebSockets.newSocket(HOST + FIND);
         executor.submit(new Runnable() {
             @Override
             public void run() {
-                System.out.println("hello from the other thread");
                 try {
-                    WebSocket mmSocket = WebSockets.newSocket(HOST + FIND);
-                    System.out.println("ws state1: " + mmSocket.getState());
                     mmSocket.addListener(new WebSocketListener() {
                         @Override
                         public boolean onOpen(WebSocket webSocket) {
-                            System.out.println("socket opened, sending data");
                             StringBuilder json = new StringBuilder(64);
                             json.append("{\"name\":\"")
                                 .append(nickname)
@@ -245,7 +242,6 @@ public class Network {
                             return FULLY_HANDLED;
                         }
                     });
-                    System.out.println("ws state2: " + mmSocket.getState());
                     mmSocket.connect();
                 } catch (WebSocketException e) {
                     System.out.println("error connecting: " + e.getMessage());
@@ -253,6 +249,7 @@ public class Network {
                 }
             }
         });
+        return mmSocket;
     }
 
 
@@ -264,12 +261,12 @@ public class Network {
      * @param roomId
      * @param callbacks
      */
-    public static void joinGame(final String id, final String roomId, final GameCallbacks callbacks) {
+    public static WebSocket joinGame(final String id, final String roomId, final GameCallbacks callbacks) {
+        final WebSocket gameSocket = WebSockets.newSocket(HOST + START + roomId + "/" + id);
         executor.submit(new Runnable() {
             @Override
             public void run() {
                 try {
-                    final WebSocket gameSocket = WebSockets.newSocket(HOST + START + roomId + "/" + id);
                     gameSocket.addListener(new WebSocketListener() {
                         boolean gameStarted = false;
                         int numOfPlayers;
@@ -277,8 +274,6 @@ public class Network {
 
                         @Override
                         public boolean onOpen(WebSocket webSocket) {
-
-                            System.out.println("onOpen");
                             return NOT_HANDLED;
                         }
 
@@ -430,5 +425,6 @@ public class Network {
                 }
             }
         });
+        return gameSocket;
     }
 }

@@ -1,10 +1,10 @@
 package com.jrti.curveparty;
 
-import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.GridPoint2;
+import com.github.czyzby.websocket.WebSocket;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,6 +16,7 @@ import java.util.List;
 public class NetworkGame {
     public static final double TILT_THRESHOLD = 0.5;
     public static CurveParty game;
+    private WebSocket socket;
 
     private List<PowerUp> powerups = new ArrayList<PowerUp>(2);
     private NetworkPlayer[] players;
@@ -29,7 +30,7 @@ public class NetworkGame {
     public NetworkGame() {
     }
 
-    public void startGame(String userId, String gameId, final PixmapScreen screen, final CurveParty game) {
+    public WebSocket startGame(String userId, String gameId, final PixmapScreen screen, final CurveParty game) {
         Gdx.input.setInputProcessor(new InputAdapter() {
             @Override
             public boolean touchDown(int x, int y, int pointer, int button) {
@@ -49,7 +50,7 @@ public class NetworkGame {
             }
         });
 
-        Network.joinGame(userId, gameId, new Network.GameCallbacks() {
+        socket = Network.joinGame(userId, gameId, new Network.GameCallbacks() {
             int myId=-1;
 
             @Override
@@ -154,5 +155,12 @@ public class NetworkGame {
             public void onError(Throwable error) {
             }
         });
+        return socket;
+    }
+
+    public void terminateGame() {
+        if(socket != null && socket.isOpen()) {
+            socket.close();
+        }
     }
 }
