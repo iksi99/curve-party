@@ -39,7 +39,7 @@ public enum AITypes {
         @Override
         public AIPlayer generate(int id, int x, int y, double direction, GameState game) {
             return new AIPlayer(id, x, y, direction, game, STEPS_TO_90_TURN*4, Math.toRadians(40), true,
-                                4, 3*SEC/4, 10, STEPS_TO_90_TURN/2);
+                                8, 3*SEC/4, 10, STEPS_TO_90_TURN/2);
         }
     },
     NO_SAFETY_CHECKS {
@@ -47,6 +47,13 @@ public enum AITypes {
         public AIPlayer generate(int id, int x, int y, double direction, GameState game) {
             return new AIPlayer(id, x, y, direction, game, STEPS_TO_90_TURN*4, Math.toRadians(30), false,
                                 1, SEC/2, 5, 10);
+        }
+    },
+    AGGRO_RANDOM {
+        @Override
+        public AIPlayer generate(int id, int x, int y, double direction, GameState game) {
+            return new AIPlayer(id, x, y, direction, game, STEPS_TO_90_TURN*4, Math.toRadians(20), true, 4, SEC/2,
+                                6, STEPS_TO_90_TURN);
         }
     };
 

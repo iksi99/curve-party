@@ -22,7 +22,6 @@ public interface Player {
     int STEPS_TO_90_TURN  = (int) ((Math.PI / 2) / TURNING_ANGLE);
     int    DEFAULT_THICKNESS = 5;
     int    DEFAULT_SPEED     = 2;
-    int TIME_TO_90_TURN   = STEPS_TO_90_TURN/DEFAULT_SPEED;
 
     float getX();
 

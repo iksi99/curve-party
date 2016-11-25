@@ -56,4 +56,23 @@ public class Utils {
     public static boolean almostEqual(int a, int b, int thr) {
         return Math.abs(a-b)<=thr;
     }
+
+    public static GridPoint2[] randomPoints(Random random, int num, int x, int y, int marginX, int marginY) {
+        GridPoint2[] res = new GridPoint2[num];
+        for (int i = 0; i < num; i++) {
+            do {
+                res[i] = new GridPoint2(random.nextInt(x - 2 * marginX) + marginX,
+                                        random.nextInt(y - 2 * marginY) + marginY);
+            } while(isPointTooClose(res[i], res));
+        }
+        return res;
+    }
+
+    private static boolean isPointTooClose(GridPoint2 p, GridPoint2[] others) {
+        for(GridPoint2 o : others) {
+            if(o==null) break;
+            if(p != o && p.dst(o) < GameState.STARTING_MIN_DISTANCE) return true;
+        }
+        return false;
+    }
 }

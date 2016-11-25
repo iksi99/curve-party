@@ -26,6 +26,7 @@ public class GameState {
     public static final double INVISIBILITY_CHANCE      = 1.0/(4 * SEC);
     public static final int    MIN_INISIBILITY_DURATION = (int)(0.1 * SEC);
     public static final int    MAX_INVISIBILITY_DURATION = SEC;
+    public static final int STARTING_MIN_DISTANCE = 60;
 
     public CurveParty game;
 
@@ -56,11 +57,11 @@ public class GameState {
 
     public void startGame(final PixmapScreen screen) {
         Random rnd = new Random();
-        final LocalPlayer localPlayer = addLocalPlayer(0, rnd.nextInt(x - 160) + 80, rnd.nextInt(y - 100) + 50,
-                                               rnd.nextDouble() * 6.283185);
+        GridPoint2[] points = Utils.randomPoints(rnd, numOfPlayers, x, y, 80, 50);
+        final LocalPlayer localPlayer = addLocalPlayer(0, points[0].x, points[0].y, rnd.nextDouble() * 6.283185);
         localPlayer.setColor(Color.WHITE);
         for(int i=1; i<numOfPlayers; i++) {
-            addAI(i, rnd.nextInt(x-100)+50, rnd.nextInt(y-70)+35, rnd.nextDouble()*6.283185);
+            addAI(i, points[i].x, points[i].y, rnd.nextDouble()*6.283185);
         }
         if(game.useTouchCommands) setTouchControls(localPlayer);
         for(Player p : playerList) {
