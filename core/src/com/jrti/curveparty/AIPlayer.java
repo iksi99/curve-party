@@ -34,23 +34,25 @@ public class AIPlayer implements Player {
     private int turningLeft=0;
     private int turningRight=0;
     private int goStraight=0;
-    private int turnsInvisible;
-    private boolean aggresiveRandomize;
-    private int almostEqualThreshold;
-    private int decisiveMove;
-    private int safetyTurnThreshold;
+
+    private int     turnsInvisible;
+    private boolean aggressiveRandomize;
+    private int     almostEqualThreshold;
+    private int     decisiveMove;
+    private int     moveBoldness;
+    private int     safetyTurnThreshold;
 
     private final GameState game;
     private List<List<GridPoint2>> recentlyOccupied = new LinkedList<List<GridPoint2>>();
 
     public AIPlayer(int id, int x, int y, double direction, GameState game) {
         this(id, x, y, direction, game, STEPS_TO_90_TURN * 3, Math.toRadians(30), false,
-             SEC/2, 2, (int) (STEPS_TO_90_TURN*1.5));
+             2, SEC/2, 2, (int) (STEPS_TO_90_TURN*1.5));
     }
 
     public AIPlayer(int id, int x, int y, double direction, GameState game, int lookaheadLimit,
-                    double lookaheadAngle, boolean aggresiveRandomize, int decisiveMove, int almostEqual,
-                    int safeTurn) {
+                    double lookaheadAngle, boolean aggressiveRandomize, int moveBoldness, int decisiveMove,
+                    int almostEqual, int safeTurn) {
         this.id = id;
         this.color = COLORS[id];
         this.x = x;
@@ -61,9 +63,10 @@ public class AIPlayer implements Player {
         this.thickness = DEFAULT_THICKNESS;
         this.lookaheadLimit = lookaheadLimit;
         this.lookaheadAngle = lookaheadAngle;
-        this.aggresiveRandomize = aggresiveRandomize;
+        this.aggressiveRandomize = aggressiveRandomize;
         this.decisiveMove = decisiveMove;
         this.almostEqualThreshold = almostEqual;
+        this.moveBoldness = moveBoldness;
         FAR_AWAY = lookaheadLimit*2;
         this.safetyTurnThreshold = safeTurn;
     }
@@ -107,21 +110,22 @@ public class AIPlayer implements Player {
         int left = lookLeft();
         int right = lookRight();
         if(straight < safetyTurnThreshold) {
+            if(aggressiveRandomize && Utils.almostEqual(left, right, almostEqualThreshold)) return randomTurn();
             if(left > right || Utils.almostEqual(left, right, almostEqualThreshold)) return moveLeft();
             return moveRight();
         }
         if(Utils.almostEqual(straight, left, right, almostEqualThreshold)) return randomMove();
-        if(aggresiveRandomize) {
+        if(aggressiveRandomize) {
             if(straight>right && Utils.almostEqual(straight, left, almostEqualThreshold)) return maybeLeft();
             if(straight>left && Utils.almostEqual(straight, right, almostEqualThreshold)) return maybeRight();
             if(left>straight && Utils.almostEqual(left, right, almostEqualThreshold)) return randomTurn();
         }
         if (straight != FAR_AWAY) {
             if(left >= right && left >= straight) {
-                turningLeft = 2;
+                turningLeft = moveBoldness;
                 return moveLeft();
             } else if(right > left && right > straight) {
-                turningRight = 2;
+                turningRight = moveBoldness;
                 return moveRight();
             }
         }
@@ -246,16 +250,21 @@ public class AIPlayer implements Player {
     }
 
     private int lookLeft() {
-        return lookAhead(dir-lookaheadAngle, lookaheadLimit);
+        return lookAhead(dir-lookaheadAngle, lookaheadLimit, x, y);
     }
     private int lookStraight() {
-        return lookAhead(dir, lookaheadLimit);
+        int edgeToHead = (thickness-1)/2;
+        float lx = (float) (x + edgeToHead * Math.cos(dir - Math.PI / 2));
+        float ly = (float) (y + edgeToHead * Math.sin(dir - Math.PI / 2));
+        float rx = (float) (x + edgeToHead * Math.cos(dir + Math.PI / 2));
+        float ry = (float) (y + edgeToHead * Math.sin(dir + Math.PI / 2));
+        return Math.min(lookAhead(dir, lookaheadLimit, lx, ly), lookAhead(dir, lookaheadLimit, rx, ry));
     }
     private int lookRight() {
-        return lookAhead(dir+lookaheadAngle, lookaheadLimit);
+        return lookAhead(dir+lookaheadAngle, lookaheadLimit, x, y);
     }
 
-    private int lookAhead(double angle, int limit) {
+    private int lookAhead(double angle, int limit, float x, float y) {
         int              nx     = (int) Math.round(x+limit*Math.cos(angle));
         int              ny     = (int) Math.round(y+limit*Math.sin(angle));
         List<GridPoint2> points = Utils.bresenham(Math.round(x), Math.round(y), nx, ny);
