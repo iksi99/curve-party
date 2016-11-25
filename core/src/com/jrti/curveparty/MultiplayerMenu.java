@@ -48,20 +48,20 @@ public class MultiplayerMenu implements Screen {
     public MultiplayerMenu(final CurveParty game) {
         width = Gdx.graphics.getWidth();
         height = Gdx.graphics.getHeight();
-        PAD_BUTTONS = height / 36;
+        PAD_BUTTONS = height / 72;
 
         this.game = game;
         logoTexture = new Texture(Gdx.files.internal("logo.png"));
 
         logoImage = new Image(logoTexture);
-        logoImage.setScaling(Scaling.fit);
+        logoImage.setScaling(Scaling.fill);
 
         camera = new OrthographicCamera();
         camera.setToOrtho(false, width, height);
 
         atlas = new TextureAtlas(Gdx.files.internal("uiskin.atlas"));
         skin = new Skin();
-        BitmapFont font = game.getFont(height / 15);
+        BitmapFont font = game.getFont(height/10);
         skin.add("default-font", font, BitmapFont.class);
         skin.addRegions(atlas);
         skin.load(Gdx.files.internal("uiskin.json"));
@@ -91,14 +91,14 @@ public class MultiplayerMenu implements Screen {
         mainTable.top();
 
         //Create buttons
-        twoplayer    = new TextButton("2 players", skin);
-        threelayer = new TextButton("3 players", skin);
-        fourplayer    = new TextButton("4 players", skin);
-        backButton = new TextButton("Back", skin);
-        twoplayer.getLabel().setFontScale(height / 250);
-        threelayer.getLabel().setFontScale(height / 250);
-        fourplayer.getLabel().setFontScale(height / 250);
-        backButton.getLabel().setFontScale(height / 250);
+        twoplayer    = new TextButton("2 igrača", skin);
+        threelayer = new TextButton("3 igrača", skin);
+        fourplayer    = new TextButton("4 igrača", skin);
+        backButton = new TextButton("Nazad", skin);
+        twoplayer.getLabel().setFontScale(height / 500);
+        threelayer.getLabel().setFontScale(height / 500);
+        fourplayer.getLabel().setFontScale(height / 500);
+        backButton.getLabel().setFontScale(height / 500);
 
         twoplayer.addListener(new ClickListener(){
             @Override

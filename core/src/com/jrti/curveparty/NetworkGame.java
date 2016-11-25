@@ -110,6 +110,8 @@ public class NetworkGame {
                         screen.clearPoints(powerups.get(i).getPoints());
                         powerups.remove(i);
                         i--;
+                    } else {
+                        screen.drawSprite(powerups.get(i).getTexture(), powerups.get(i).getX(), powerups.get(i).getY());
                     }
                 }
             }

@@ -18,15 +18,16 @@ public class CurveParty extends Game {
     public void create() {
         spriteBatch = new SpriteBatch();
         useTouchCommands = Gdx.app.getPreferences(PREFS_NAME).getBoolean(PREFS_KEY_USE_TOUCH, false);
-        FONT_GENERATOR = new FreeTypeFontGenerator(Gdx.files.internal("roboto.ttf"));
+        FONT_GENERATOR = new FreeTypeFontGenerator(Gdx.files.internal("mexcellent.ttf"));
         this.setScreen(new MainMenu(this));
     }
 
     public BitmapFont getFont(int size) {
         FreeTypeFontGenerator.FreeTypeFontParameter parameter = new FreeTypeFontGenerator.FreeTypeFontParameter();
         parameter.size = size;
-        parameter.shadowOffsetX=2;
-        parameter.shadowOffsetY=2;
+        //parameter.shadowOffsetX=2;
+        //parameter.shadowOffsetY=2;
+        parameter.characters = "abcčćdđefghijklmnopqrsštuvwxyzžABCČĆDĐEFGHIJKLMNOPQRSTUVWXYZŽ1234567890";
         return FONT_GENERATOR.generateFont(parameter);
     }
 

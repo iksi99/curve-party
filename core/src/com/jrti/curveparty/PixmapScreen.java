@@ -8,10 +8,13 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.GridPoint2;
+import com.badlogic.gdx.math.Rectangle;
 import com.github.czyzby.websocket.WebSocket;
 
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -63,6 +66,9 @@ public class PixmapScreen implements Screen {
     private Score[] scores;
 
     private Texture texture;
+    private List<Texture> gameSprites = new ArrayList<Texture>();
+    private List<Integer> spriteX = new ArrayList<Integer>();
+    private List<Integer> spriteY = new ArrayList<Integer>();
 
     public PixmapScreen(final CurveParty game, int numberOfPlayers) {
         this.game = game;
@@ -110,7 +116,7 @@ public class PixmapScreen implements Screen {
     /**
      * this will reset current Pixmap if passed dimensions are different than current
      * @param x x dimension of the grid (horizontal)
-     * @param y y dimenzion of the grid (vertical)
+     * @param y y dimension of the grid (vertical)
      */
     public void setPixmapSize(int x, int y) {
         if(x!=GRID_X || y !=GRID_Y) {
@@ -136,11 +142,14 @@ public class PixmapScreen implements Screen {
         game.spriteBatch.begin();
         int w = Gdx.graphics.getWidth(), h = Gdx.graphics.getHeight();
         if(isSearchingForGame) {
-            searchingFont.draw(game.spriteBatch, "Searching...", w/2-80, h/2+10);
+            searchingFont.draw(game.spriteBatch, "Traženje u toku...", w/2-80, h/2+10);
         } else {
             texture.dispose();
             texture = new Texture(map);
             game.spriteBatch.draw(texture, 0, 0, w, h);
+            for (int i = 0; i < gameSprites.size(); i++) {
+                game.spriteBatch.draw(gameSprites.get(i), spriteX.get(i), spriteY.get(i));
+            }
             if (scores != null) {
                 for (int i = 0; i < scores.length; i++) {
                     font.setColor(scores[i].color);
@@ -152,6 +161,9 @@ public class PixmapScreen implements Screen {
             }
         }
         game.spriteBatch.end();
+        gameSprites = new ArrayList<Texture>();
+        spriteX = new ArrayList<Integer>();
+        spriteY = new ArrayList<Integer>();
     }
 
     @Override
@@ -226,6 +238,12 @@ public class PixmapScreen implements Screen {
         }
     }
 
+    public void drawSprite(Texture texture, int x, int y) {
+        gameSprites.add(texture);
+        spriteX.add(x);
+        spriteY.add(y);
+    }
+
     public void clearScreen() {
         map.setColor(BG_COLOR);
         map.fill();
@@ -240,4 +258,17 @@ public class PixmapScreen implements Screen {
     public void drawScores(Score[] scores) {
         this.scores = scores;
     }
+
+    /*public void drawHeads(Player p) {
+        Rectangle head = new Rectangle();
+        head.x = p.getX();
+        head.y = p.getY();
+        head.width = 10;
+        head.height = 10;
+        ShapeRenderer renderer = new ShapeRenderer();
+        renderer.begin(ShapeRenderer.ShapeType.Filled);
+        renderer.setColor(p.getColor());
+        renderer.rect(head.x, head.y, head.width, head.height);
+        renderer.end();
+    } previse sporo*/
 }

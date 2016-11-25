@@ -67,7 +67,7 @@ public class MainMenu implements Screen {
 
         atlas = new TextureAtlas(Gdx.files.internal("uiskin.atlas"));
         skin = new Skin();
-        BitmapFont font = game.getFont(height/15);
+        BitmapFont font = game.getFont(height/10);
         skin.add("default-font", font, BitmapFont.class);
         skin.addRegions(atlas);
         skin.load(Gdx.files.internal("uiskin.json"));
@@ -98,10 +98,10 @@ public class MainMenu implements Screen {
         mainTable.top();
 
         //Create buttons
-        singleplayer    = new TextButton("Singleplayer", skin);
-        multiplayer = new TextButton("Multiplayer", skin);
-        useTouch = new CheckBox("Use touch instead of tilt", skin);
-        exitButton    = new TextButton("Exit", skin);
+        singleplayer    = new TextButton("Igra za jednog igrača", skin);
+        multiplayer = new TextButton("Igra za više igrača", skin);
+        useTouch = new CheckBox("Koristi komande na dodir", skin);
+        exitButton    = new TextButton("Izlaz", skin);
         //singleplayer.getLabel().setFontScale(Math.max(height / 250, 1.7f));
         //multiplayer.getLabel().setFontScale(Math.max(height / 250, 1.7f));
         useTouch.getLabel().setFontScale(0.8f);
