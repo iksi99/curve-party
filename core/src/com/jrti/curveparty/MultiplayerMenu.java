@@ -5,6 +5,7 @@ import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
@@ -59,7 +60,11 @@ public class MultiplayerMenu implements Screen {
         camera.setToOrtho(false, width, height);
 
         atlas = new TextureAtlas(Gdx.files.internal("uiskin.atlas"));
-        skin = new Skin(Gdx.files.internal("uiskin.json"), atlas);
+        skin = new Skin();
+        BitmapFont font = game.getFont(height / 15);
+        skin.add("default-font", font, BitmapFont.class);
+        skin.addRegions(atlas);
+        skin.load(Gdx.files.internal("uiskin.json"));
 
         Viewport v = new FitViewport(width, height, camera);
         stage = new Stage(v, game.spriteBatch);
