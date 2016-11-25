@@ -94,7 +94,6 @@ public class PixmapScreen implements Screen {
     public PixmapScreen startMultiplayer(String nickname) {
         isSearchingForGame = true;
         displayError = false;
-        networkSocket = Network.findGame("iksi99", numberOfPlayers, new Network.MatchmakingCallbacks() {
         networkSocket = Network.findGame(nickname, numberOfPlayers, new Network.MatchmakingCallbacks() {
             @Override
             public void onGameFound(String nickname, String id, String gameId)
