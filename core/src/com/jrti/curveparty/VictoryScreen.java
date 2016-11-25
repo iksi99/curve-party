@@ -25,50 +25,42 @@ import static com.jrti.curveparty.CurveParty.PREFS_KEY_USE_TOUCH;
 import static com.jrti.curveparty.CurveParty.PREFS_NAME;
 
 /**
- * Created by cactoss on 7.11.2016..
+ * Created by cactoss on 25.11.2016..
  */
 
-public class MainMenu implements Screen {
+public class VictoryScreen implements Screen {
     //public static final boolean USING_PIXMAP = true;
 
     public static int PAD_LOGO = 0, PAD_BUTTONS;
 
     private final CurveParty game;
 
-    private Texture logoTexture;
-
-    private Image logoImage;
-
     private OrthographicCamera camera;
     private Stage stage;
     private Skin skin;
     private TextureAtlas atlas;
+    private BitmapFont font;
+    private NetworkPlayer[] players;
 
     int width, height;
 
-    TextButton singleplayer;
-    TextButton multiplayer;
-    TextButton credits;
-    CheckBox useTouch;
     TextButton exitButton;
 
-    public MainMenu(final CurveParty game) {
+
+    public VictoryScreen(final CurveParty game, NetworkPlayer[] players) {
         width = Gdx.graphics.getWidth();
         height = Gdx.graphics.getHeight();
         PAD_BUTTONS = height / 36;
 
         this.game = game;
-        logoTexture = new Texture(Gdx.files.internal("logo.png"));
-
-        logoImage = new Image(logoTexture);
-        logoImage.setScaling(Scaling.fit);
+        this.players = players;
 
         camera = new OrthographicCamera();
         camera.setToOrtho(false, width, height);
 
         atlas = new TextureAtlas(Gdx.files.internal("uiskin.atlas"));
         skin = new Skin();
-        BitmapFont font = game.getFont(height/10);
+        this.font = game.getFont(height/10);
         skin.add("default-font", font, BitmapFont.class);
         skin.addRegions(atlas);
         skin.load(Gdx.files.internal("uiskin.json"));
@@ -84,6 +76,15 @@ public class MainMenu implements Screen {
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
+        int maxScore = 0;
+        NetworkPlayer winner = players[0];
+
+        for (NetworkPlayer p : players) {
+            if(p.getScore() > maxScore) winner = p;
+        }
+        game.spriteBatch.begin();
+        font.draw(game.spriteBatch, "Pobednik je " + winner.getName(), width / 2 - 200, height / 2 + 100);
+        game.spriteBatch.end();
         stage.act();
         stage.draw();
     }
@@ -99,59 +100,15 @@ public class MainMenu implements Screen {
         mainTable.top();
 
         //Create buttons
-        singleplayer    = new TextButton("Igra za jednog igrača", skin);
-        multiplayer = new TextButton("Igra za više igrača", skin);
-        credits = new TextButton("Zasluge", skin);
-        useTouch = new CheckBox("Koristi komande na dodir", skin);
         exitButton    = new TextButton("Izlaz", skin);
-        //singleplayer.getLabel().setFontScale(Math.max(height / 250, 1.7f));
-        //multiplayer.getLabel().setFontScale(Math.max(height / 250, 1.7f));
-        useTouch.getLabel().setFontScale(0.8f);
-        useTouch.getCells().get(0).size(Math.max(height / 10, 30), Math.max(height / 10, 30));
-        useTouch.setChecked(game.useTouchCommands);
-        //exitButton.getLabel().setFontScale(Math.max(height / 250, 1.7f));
-        useTouch.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeEvent event, Actor actor) {
-                game.useTouchCommands = !game.useTouchCommands;
-                Gdx.app.getPreferences(PREFS_NAME).putBoolean(PREFS_KEY_USE_TOUCH, game.useTouchCommands).flush();
-            }
-        });
-
-        singleplayer.addListener(new ClickListener(){
-            @Override
-            public void clicked(InputEvent event, float x, float y) {
-                //if(USING_PIXMAP)
-                    game.setScreen(new PixmapScreen(game, 1).startSingleplayer());
-                //else
-                //    game.setScreen(new GameScreen(game));
-            }
-        });
-        multiplayer.addListener(new ClickListener(){
-            @Override
-            public void clicked(InputEvent event, float x, float y) {
-                game.setScreen(new MultiplayerMenu(game));
-            }
-        });
-        credits.addListener(new ClickListener(){
-            @Override
-            public void clicked(InputEvent event, float x, float y) {
-                game.setScreen(new CreditsScreen(game));
-            }
-        });
         exitButton.addListener(new ClickListener(){
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                Gdx.app.exit();
+                game.setScreen(new MainMenu(game));
             }
         });
 
-        mainTable.add(logoImage).padBottom(PAD_LOGO).row();
-        mainTable.add(singleplayer).padBottom(PAD_BUTTONS).row();
-        mainTable.add(multiplayer).padBottom(PAD_BUTTONS).row();
-        mainTable.add(credits).padBottom(PAD_BUTTONS).row();
-        mainTable.add(useTouch).padBottom(PAD_BUTTONS).row();
-        mainTable.add(exitButton).padBottom(PAD_BUTTONS).row();
+        mainTable.add(exitButton).padTop(2*height/3).row();
 
         //Add table to stage
         stage.addActor(mainTable);
@@ -159,8 +116,6 @@ public class MainMenu implements Screen {
 
     @Override
     public void hide() {
-        singleplayer    = null;
-        multiplayer = null;
         exitButton    = null;
     }
 

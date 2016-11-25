@@ -18,7 +18,7 @@ public class CurveParty extends Game {
     public void create() {
         spriteBatch = new SpriteBatch();
         useTouchCommands = Gdx.app.getPreferences(PREFS_NAME).getBoolean(PREFS_KEY_USE_TOUCH, false);
-        FONT_GENERATOR = new FreeTypeFontGenerator(Gdx.files.internal("mexcellent.ttf"));
+        FONT_GENERATOR = new FreeTypeFontGenerator(Gdx.files.internal("Roboto-Regular.ttf"));
         this.setScreen(new MainMenu(this));
     }
 

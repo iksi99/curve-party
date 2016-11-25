@@ -148,8 +148,8 @@ public class PowerUp {
                 area.add(new GridPoint2(x+i, y+j));
             }
         }
-        this.x = x - EDGE_TO_CENTER;
-        this.y = y - EDGE_TO_CENTER;
+        this.x = x;// - EDGE_TO_CENTER;
+        this.y = y;// - EDGE_TO_CENTER;
     }
 
     /**
@@ -178,11 +178,11 @@ public class PowerUp {
     }
 
     public int getX() {
-        return x;
+        return this.x;
     }
 
     public int getY() {
-        return y;
+        return this.y;
     }
 
     @Override

@@ -66,9 +66,8 @@ public class PixmapScreen implements Screen {
     private Score[] scores;
 
     private Texture texture;
-    private List<Texture> gameSprites = new ArrayList<Texture>();
-    private List<Integer> spriteX = new ArrayList<Integer>();
-    private List<Integer> spriteY = new ArrayList<Integer>();
+    private List<PowerUp> powerUps = new ArrayList<PowerUp>();
+    private NetworkPlayer[] players = new NetworkPlayer[0];
 
     public PixmapScreen(final CurveParty game, int numberOfPlayers) {
         this.game = game;
@@ -77,7 +76,7 @@ public class PixmapScreen implements Screen {
         //map.setColor(BG_COLOR);
         //map.fill();
         texture = new Texture(map);
-        font = game.getFont(14);
+        font = game.getFont(20);
         searchingFont = game.getFont(40);
 
         this.numberOfPlayers = numberOfPlayers;
@@ -92,9 +91,9 @@ public class PixmapScreen implements Screen {
         return this;
     }
 
-    public PixmapScreen startMultiplayer() {
+    public PixmapScreen startMultiplayer(String nickname) {
         isSearchingForGame = true;
-        networkSocket = Network.findGame("iksi99", numberOfPlayers, new Network.MatchmakingCallbacks() {
+        networkSocket = Network.findGame(nickname, numberOfPlayers, new Network.MatchmakingCallbacks() {
             @Override
             public void onGameFound(String nickname, String id, String gameId)
             {
@@ -142,13 +141,16 @@ public class PixmapScreen implements Screen {
         game.spriteBatch.begin();
         int w = Gdx.graphics.getWidth(), h = Gdx.graphics.getHeight();
         if(isSearchingForGame) {
-            searchingFont.draw(game.spriteBatch, "Traženje u toku...", w/2-80, h/2+10);
+            searchingFont.draw(game.spriteBatch, "Traženje u toku...", w/2-130, h/2+10);
         } else {
             texture.dispose();
             texture = new Texture(map);
             game.spriteBatch.draw(texture, 0, 0, w, h);
-            for (int i = 0; i < gameSprites.size(); i++) {
-                game.spriteBatch.draw(gameSprites.get(i), spriteX.get(i), spriteY.get(i));
+            for (PowerUp p : powerUps) {
+                game.spriteBatch.draw(p.getTexture(), (p.getX() - 9)*((float) w/GRID_X), (GRID_Y - p.getY() - 9)*((float) h/GRID_Y), w / 42, h / 24);
+            }
+            for (NetworkPlayer p : players) {
+                font.draw(game.spriteBatch, p.getName(), (p.getX() - 9)*((float) w/GRID_X), (GRID_Y - p.getY() - 9)*((float) h/GRID_Y));
             }
             if (scores != null) {
                 for (int i = 0; i < scores.length; i++) {
@@ -161,9 +163,9 @@ public class PixmapScreen implements Screen {
             }
         }
         game.spriteBatch.end();
-        gameSprites = new ArrayList<Texture>();
+        /*gameSprites = new ArrayList<Texture>();
         spriteX = new ArrayList<Integer>();
-        spriteY = new ArrayList<Integer>();
+        spriteY = new ArrayList<Integer>();*/
     }
 
     @Override
@@ -213,6 +215,10 @@ public class PixmapScreen implements Screen {
         }
     }
 
+    public void getPlayers(NetworkPlayer[] players) {
+        this.players = players;
+    }
+
     private void fillInBlanks(int x0, int y0, int x1, int y1) {
         int bg = rgba8888(BG_COLOR);
         for(int x=x0; x<=x1; x++) {
@@ -238,10 +244,8 @@ public class PixmapScreen implements Screen {
         }
     }
 
-    public void drawSprite(Texture texture, int x, int y) {
-        gameSprites.add(texture);
-        spriteX.add(x);
-        spriteY.add(y);
+    public void drawPowerups(List<PowerUp> powerUps) {
+        this.powerUps = powerUps;
     }
 
     public void clearScreen() {

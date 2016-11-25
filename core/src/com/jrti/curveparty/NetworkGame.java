@@ -75,6 +75,7 @@ public class NetworkGame {
                     for(int i=-2;i<=2;i++) for(int j=-2; j<=2;j++) l.add(new GridPoint2((int)p.getX()+i,(int)p.getY()+j));
                     screen.drawPoints(l, p.getColor());
                 }
+                screen.getPlayers(players);
             }
 
             @Override
@@ -85,6 +86,7 @@ public class NetworkGame {
 
             @Override
             public void onPlayerAdvanced(int id, int state, int x, int y, float thickness) {
+                screen.getPlayers(players);
                 if (state != Player.STATE_DEAD) {
                     Player p = players[id];
                     List<GridPoint2> occupied = p.moveTo(x, y, thickness);
@@ -97,6 +99,7 @@ public class NetworkGame {
                                 if (powerups.get(i).containsPoint(gp)) {
                                     screen.clearPoints(powerups.get(i).getPoints());
                                     powerups.remove(i);
+                                    screen.drawPowerups(powerups);
                                     gotPowerup = true;
                                     break;
                                 }
@@ -110,9 +113,10 @@ public class NetworkGame {
                         screen.clearPoints(powerups.get(i).getPoints());
                         powerups.remove(i);
                         i--;
-                    } else {
+                        screen.drawPowerups(powerups);
+                    }/* else {
                         screen.drawSprite(powerups.get(i).getTexture(), powerups.get(i).getX(), powerups.get(i).getY());
-                    }
+                    }*/
                 }
             }
 
@@ -121,6 +125,8 @@ public class NetworkGame {
                 PowerUp pu = new PowerUp(type, x, y, timeAlive);
                 powerups.add(pu);
                 screen.drawPoints(pu.getPixels());
+                screen.drawPowerups(powerups);
+                //screen.drawSprite(pu.getTexture(), pu.getX(), pu.getY());
             }
 
             @Override
@@ -140,7 +146,7 @@ public class NetworkGame {
 
             @Override
             public void onGameFinished() {
-                //todo display victory screen or smth
+                game.setScreen(new VictoryScreen(game, players));
             }
 
             @Override
@@ -151,6 +157,8 @@ public class NetworkGame {
                     scs[i] = new PixmapScreen.Score(players[i].getColor(), scores[i]);
                 }
                 screen.drawScores(scs);
+                powerups = new ArrayList<PowerUp>();
+                screen.drawPowerups(powerups);
             }
 
             @Override
@@ -164,5 +172,9 @@ public class NetworkGame {
         if(socket != null && socket.isOpen()) {
             socket.close();
         }
+    }
+
+    private List<PowerUp> getPowerups() {
+        return powerups;
     }
 }
