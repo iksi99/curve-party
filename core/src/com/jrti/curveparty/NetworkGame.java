@@ -163,6 +163,7 @@ public class NetworkGame {
 
             @Override
             public void onError(Throwable error) {
+                screen.showError();
             }
         });
         return socket;

@@ -8,9 +8,7 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.GridPoint2;
-import com.badlogic.gdx.math.Rectangle;
 import com.github.czyzby.websocket.WebSocket;
 
 import java.net.URLEncoder;
@@ -54,6 +52,7 @@ public class PixmapScreen implements Screen {
     private Pixmap map;
     private WebSocket networkSocket;
     private boolean isSearchingForGame = false;
+    private boolean displayError = false;
     private final BitmapFont searchingFont;
 
     static class Score {
@@ -84,6 +83,7 @@ public class PixmapScreen implements Screen {
     }
 
     public PixmapScreen startSingleplayer() {
+        displayError = false;
         map.setColor(BG_COLOR);
         map.fill();
         GameState gameState = new GameState(GRID_X, GRID_Y, 4, game);
@@ -93,6 +93,8 @@ public class PixmapScreen implements Screen {
 
     public PixmapScreen startMultiplayer(String nickname) {
         isSearchingForGame = true;
+        displayError = false;
+        networkSocket = Network.findGame("iksi99", numberOfPlayers, new Network.MatchmakingCallbacks() {
         networkSocket = Network.findGame(nickname, numberOfPlayers, new Network.MatchmakingCallbacks() {
             @Override
             public void onGameFound(String nickname, String id, String gameId)
@@ -101,10 +103,12 @@ public class PixmapScreen implements Screen {
                 networkSocket = networkGame.startGame(URLEncoder.encode(id), URLEncoder.encode(gameId),
                                                       PixmapScreen.this, game);
                 isSearchingForGame = false;
+                displayError = false;
             }
 
             @Override
             public void onError(Throwable error) {
+                displayError = true;
             }
 
         });
@@ -140,9 +144,12 @@ public class PixmapScreen implements Screen {
 
         game.spriteBatch.begin();
         int w = Gdx.graphics.getWidth(), h = Gdx.graphics.getHeight();
-        if(isSearchingForGame) {
-            searchingFont.draw(game.spriteBatch, "Traženje u toku...", w/2-130, h/2+10);
-        } else {
+        if(displayError) {
+            searchingFont.draw(game.spriteBatch, "Nešto je pošlo po zlu :/\nProveri konekciju i pokušaj ponovo", w/2-280, h/2+30);
+        }
+        else if(isSearchingForGame) {
+            searchingFont.draw(game.spriteBatch, "Traženje u toku...", w/2-100, h/2+10);
+        } else{
             texture.dispose();
             texture = new Texture(map);
             game.spriteBatch.draw(texture, 0, 0, w, h);
@@ -263,6 +270,9 @@ public class PixmapScreen implements Screen {
         this.scores = scores;
     }
 
+    public void showError() {
+        displayError = true;
+    }
     /*public void drawHeads(Player p) {
         Rectangle head = new Rectangle();
         head.x = p.getX();

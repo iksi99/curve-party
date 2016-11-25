@@ -245,6 +245,7 @@ public class Network {
                     mmSocket.connect();
                 } catch (WebSocketException e) {
                     System.out.println("error connecting: " + e.getMessage());
+                    callbacks.onError(e);
                     e.printStackTrace();
                 }
             }
@@ -421,6 +422,7 @@ public class Network {
                     });
                     gameSocket.connect();
                 } catch(WebSocketException e) {
+                    callbacks.onError(e);
                     e.printStackTrace();
                 }
             }
