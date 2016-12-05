@@ -25,8 +25,8 @@ public class CurveParty extends Game {
     public BitmapFont getFont(int size) {
         FreeTypeFontGenerator.FreeTypeFontParameter parameter = new FreeTypeFontGenerator.FreeTypeFontParameter();
         parameter.size = size;
-        //parameter.shadowOffsetX=2;
-        //parameter.shadowOffsetY=2;
+        parameter.shadowOffsetX=2;
+        parameter.shadowOffsetY=2;
         parameter.characters = "abcčćdđefghijklmnopqrsštuvwxyzžABCČĆDĐEFGHIJKLMNOPQRSTUVWXYZŽ1234567890";
         return FONT_GENERATOR.generateFont(parameter);
     }
