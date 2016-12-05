@@ -99,10 +99,10 @@ public class MultiplayerMenu implements Screen {
         threelayer = new TextButton("3 igrača", skin);
         fourplayer    = new TextButton("4 igrača", skin);
         backButton = new TextButton("Nazad", skin);
-        twoplayer.getLabel().setFontScale(Math.max(1, height / 500));
-        threelayer.getLabel().setFontScale(Math.max(1, height / 500));
-        fourplayer.getLabel().setFontScale(Math.max(1, height / 500));
-        backButton.getLabel().setFontScale(Math.max(1, height / 500));
+        twoplayer.getLabel().setFontScale(Math.max(1, height / 750));
+        threelayer.getLabel().setFontScale(Math.max(1, height / 750));
+        fourplayer.getLabel().setFontScale(Math.max(1, height / 750));
+        backButton.getLabel().setFontScale(Math.max(1, height / 750));
 
         twoplayer.addListener(new ClickListener(){
             @Override
