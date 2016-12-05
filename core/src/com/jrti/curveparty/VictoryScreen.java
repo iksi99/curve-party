@@ -80,7 +80,10 @@ public class VictoryScreen implements Screen {
         NetworkPlayer winner = players[0];
 
         for (NetworkPlayer p : players) {
-            if(p.getScore() > maxScore) winner = p;
+            if(p.getScore() > maxScore) {
+                winner = p;
+                maxScore = p.getScore();
+            }
         }
         game.spriteBatch.begin();
         font.draw(game.spriteBatch, "Pobednik je " + winner.getName(), width / 2 - 200, height / 2 + 100);
