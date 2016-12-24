@@ -107,10 +107,7 @@ public class MultiplayerMenu implements Screen {
         twoplayer.addListener(new ClickListener(){
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                //if(USING_PIXMAP)
                 game.setScreen(new PixmapScreen(game, 2).startMultiplayer(nick.getText()));
-                //else
-                //    game.setScreen(new GameScreen(game));
             }
         });
         threelayer.addListener(new ClickListener(){

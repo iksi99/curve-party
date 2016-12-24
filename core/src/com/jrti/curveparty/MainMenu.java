@@ -29,7 +29,6 @@ import static com.jrti.curveparty.CurveParty.PREFS_NAME;
  */
 
 public class MainMenu implements Screen {
-    //public static final boolean USING_PIXMAP = true;
 
     public static int PAD_LOGO = 0, PAD_BUTTONS;
 
@@ -121,10 +120,7 @@ public class MainMenu implements Screen {
         singleplayer.addListener(new ClickListener(){
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                //if(USING_PIXMAP)
                     game.setScreen(new PixmapScreen(game, 1).startSingleplayer());
-                //else
-                //    game.setScreen(new GameScreen(game));
             }
         });
         multiplayer.addListener(new ClickListener(){

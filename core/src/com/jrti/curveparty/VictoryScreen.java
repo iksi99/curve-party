@@ -29,7 +29,6 @@ import static com.jrti.curveparty.CurveParty.PREFS_NAME;
  */
 
 public class VictoryScreen implements Screen {
-    //public static final boolean USING_PIXMAP = true;
 
     public static int PAD_LOGO = 0, PAD_BUTTONS;
 
