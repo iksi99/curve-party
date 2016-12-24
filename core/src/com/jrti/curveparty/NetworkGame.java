@@ -10,26 +10,62 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by luka on 14.11.16..
+ * Stores the state of a multiplayer game.
+ * Created by luka on 14.11.16.
  */
 
 public class NetworkGame {
+    /**
+     * The threshold after which Accelerometer input is registered
+     */
     public static final double TILT_THRESHOLD = 0.5;
+    /**
+     * The active instance of the game class
+     */
     public static CurveParty game;
+    /**
+     * The websocket used to connect to the server
+     */
     private WebSocket socket;
 
+    /**
+     * The list of currently active powerups
+     */
     private List<PowerUp> powerups = new ArrayList<PowerUp>(2);
+    /**
+     * The list of players in the game
+     */
     private NetworkPlayer[] players;
+    /**
+     * The size in the X and Y axes of the game field
+     */
     private int gridX, gridY;
 
+    /**
+     * True if the player is turning left in the current frame
+     */
     private boolean isTurningLeft = false;
+    /**
+     * True if the player is turning right in the current frame
+     */
     private boolean isTurningRight = false;
 
+    /**
+     * Screen width of the device the application is running on
+     */
     private int width = Gdx.graphics.getWidth();
 
     public NetworkGame() {
     }
 
+    /**
+     * Initializes the network game and handles game logic using callbacks from {@link com.jrti.curveparty.Network.MatchmakingCallbacks}.
+     * @param userId A number used to differentiate multiple users
+     * @param gameId A number used by the server to differentiate different games
+     * @param screen The screen from which the method was called
+     * @param game The instance of the game class
+     * @return Returns the socket used for connecting to the server
+     */
     public WebSocket startGame(String userId, String gameId, final PixmapScreen screen, final CurveParty game) {
         Gdx.input.setInputProcessor(new InputAdapter() {
             @Override
@@ -169,12 +205,19 @@ public class NetworkGame {
         return socket;
     }
 
+    /**
+     * Closes the socket
+     */
     public void terminateGame() {
         if(socket != null && socket.isOpen()) {
             socket.close();
         }
     }
 
+    /**
+     *
+     * @return Returns the list of powerups currently active
+     */
     private List<PowerUp> getPowerups() {
         return powerups;
     }

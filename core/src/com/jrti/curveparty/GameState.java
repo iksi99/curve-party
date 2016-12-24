@@ -16,70 +16,70 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Keeps the state of a singleplayer game
+ * Keeps the state of a singleplayer game.
  * Created by cactoss on 2.11.2016.
  */
 
 public class GameState {
     /**
-     * Delay between two frames in ms
+     * Delay between two frames in ms.
      */
     public static final int    TIMESTEP_DURATION        = 25;
     /**
-     * Number of frames per second
+     * Number of frames per second.
      */
     public static final int    SEC                      = 1000 / TIMESTEP_DURATION;
     /**
-     * The treshold over which the Accelerometer input is registered
+     * The treshold over which the Accelerometer input is registered.
      */
     public static final double TILT_THRESHOLD           = 0.8;
     /**
-     * The chance that a player becomes visible during a given frame
+     * The chance that a player becomes visible during a given frame.
      */
     public static final double INVISIBILITY_CHANCE      = 1.0/(4 * SEC);
     /**
-     * The minimum amount of frames a player can be invisible
+     * The minimum amount of frames a player can be invisible.
      */
     public static final int    MIN_INISIBILITY_DURATION = (int)(0.1 * SEC);
     /**
-     * The maximum amount of frames a player can be invisible
+     * The maximum amount of frames a player can be invisible.
      */
     public static final int    MAX_INVISIBILITY_DURATION = SEC;
     /**
-     * The minimum distance from the players' starting positions and the edge of the playing field
+     * The minimum distance from the players' starting positions and the edge of the playing field.
      */
-    public static final int STARTING_MIN_DISTANCE = 60;
+    public static final int    STARTING_MIN_DISTANCE     = 60;
 
     public CurveParty game;
 
     /**
-     * Size of the playing field in the X axis
+     * Size of the playing field in the X axis.
      */
     private final int x;
     /**
-     * Size of the playing field in the Y axis
+     * Size of the playing field in the Y axis.
      */
     private final int y;
     /**
-     * Number of players in the game
+     * Number of players in the game.
      */
     private int numOfPlayers;
 
     /**
-     * The list of fields that are occupied
+     * The list of fields that are occupied.
      */
-    private Set<GridPoint2> occupiedFields; //could (should?) use boolean matrix
+    private Set<GridPoint2> occupiedFields; //could (should?) use boolean matrix.
     /**
-     * The list of players in the game
+     * The list of players in the game.
      */
     private List<Player> playerList = new ArrayList<Player>();
 
     /**
      *
-     * @param x Size of the playing field in the X axis
-     * @param y Size of the playing field in the Y axis
-     * @param numOfPlayers Number of players in the game
-     * @param game The instance of the game class from which the constructor was called
+     * @param x Size of the playing field in the X axis.
+     * @param y Size of the playing field in the Y axis.
+     * @param numOfPlayers Number of players in the game.
+     * @param game The instance of the game class from which the constructor was called.
      */
     public GameState(int x, int y, int numOfPlayers, CurveParty game) {
         this.x = x;
@@ -92,8 +92,8 @@ public class GameState {
 
 
     /**
-     * Initializes and runs the game
-     * @param screen The screen from which the method was called
+     * Initializes and runs the game.
+     * @param screen The screen from which the method was called.
      */
     public void startGame(final PixmapScreen screen) {
         Random rnd = new Random();
@@ -138,8 +138,8 @@ public class GameState {
     }
 
     /**
-     * Makes the player turn using touch input instead of Accelerometer
-     * @param player The player for which the input is being set
+     * Makes the player turn using touch input instead of Accelerometer.
+     * @param player The player for which the input is being set.
      */
     private void setTouchControls(final LocalPlayer player) {
         Gdx.input.setInputProcessor(new InputAdapter() {
@@ -168,7 +168,7 @@ public class GameState {
 
     /**
      *
-     * @return Returns the list of all players in the game
+     * @return Returns the list of all players in the game.
      */
     public List<Player> getPlayerList() {
         return playerList;
@@ -176,7 +176,7 @@ public class GameState {
 
     /**
      *
-     * @return Returns the size of the field in the X axis
+     * @return Returns the size of the field in the X axis.
      */
     public int getX() {
         return x;
@@ -184,51 +184,51 @@ public class GameState {
 
     /**
      *
-     * @return Returns the size of the field in the Y axis
+     * @return Returns the size of the field in the Y axis.
      */
     public int getY() {
         return y;
     }
 
     /**
-     * Checks if the point is occupied
-     * @param p The point being checked
-     * @return Returns true if occupied, otherwise returns false
+     * Checks if the point is occupied.
+     * @param p The point being checked.
+     * @return Returns true if occupied, otherwise returns false.
      */
     public boolean isOccupied(GridPoint2 p) {
         return occupiedFields.contains(p);
     }
 
     /**
-     * Checks if the point is available to be occupied
-     * @param point The point being checked
-     * @return Returns true if available, otherwise returns false
+     * Checks if the point is available to be occupied.
+     * @param point The point being checked.
+     * @return Returns true if available, otherwise returns false.
      */
     public boolean isAvailable(GridPoint2 point) {
         return point.x > 0 && point.y > 0 && point.x < x && point.y < y && !isOccupied(point);
     }
 
     /**
-     * Sets the point as occupied
-     * @param p The point being occupied
+     * Sets the point as occupied.
+     * @param p The point being occupied.
      */
     public void setOccupied(GridPoint2 p) {
         occupiedFields.add(p);
     }
 
     /**
-     * Sets multiple points as occupied
-     * @param points Points being occupied
+     * Sets multiple points as occupied.
+     * @param points Points being occupied.
      */
     public void setOccupied(Collection<GridPoint2> points) {
         occupiedFields.addAll(points);
     }
 
     /**
-     * Adds a new human player to the list of players
-     * @param id A number for identifying different players
-     * @param xPos Position of the player on the X axis
-     * @param yPos Position of the player on the Y axis
+     * Adds a new human player to the list of players.
+     * @param id A number for identifying different players.
+     * @param xPos Position of the player on the X axis.
+     * @param yPos Position of the player on the Y axis.
      * @param direction The direction the player is facing, measured in radians from the positive X
      *                  direction.
      * @return Returns the player that was added.
@@ -240,10 +240,10 @@ public class GameState {
     }
 
     /**
-     * Adds a new AI controlled player to the list of players
-     * @param id A number for identifying different players
-     * @param xPos Position of the player on the X axis
-     * @param yPos Position of the player on the Y axis
+     * Adds a new AI controlled player to the list of players.
+     * @param id A number for identifying different players.
+     * @param xPos Position of the player on the X axis.
+     * @param yPos Position of the player on the Y axis.
      * @param direction The direction the player is facing, measured in radians from the positive X
      *                  direction.
      * @return Returns the player that was added.

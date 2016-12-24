@@ -23,9 +23,9 @@ public class CurveParty extends Game {
     }
 
     /**
-     * Generates fonts of the requested size
-     * @param size Size of the font being generated
-     * @return Returns the font with the provided parameters
+     * Generates fonts of the requested size.
+     * @param size Size of the font being generated.
+     * @return Returns the font with the provided parameters.
      */
     public BitmapFont getFont(int size) {
         FreeTypeFontGenerator.FreeTypeFontParameter parameter = new FreeTypeFontGenerator.FreeTypeFontParameter();
